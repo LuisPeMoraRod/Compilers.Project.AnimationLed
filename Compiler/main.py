@@ -3,7 +3,7 @@ from parser import *
 import sys
 
 def main():
-    print("Teeny Tiny Compiler")
+    print("Animation LED Compiler")
 
     if len(sys.argv) != 2:
         sys.exit("Error: Compiler needs source file as argument.")

@@ -10,7 +10,8 @@ class Parser:
 
         self.symbols = []    # Variables declared so far and their types and values
 
-        self.tempIdent  = None
+        #Variables used for logic validations: e.g. check if a variable already exists
+        self.tempIdent  = None 
         self.tempType = None
         self.tempIsGlobal = None
 
@@ -204,8 +205,12 @@ class Parser:
             self.nextToken()
 
         elif self.checkToken(TokenType.IDENT):
-            self.nextToken()
-            self.squareBrackets()
+            self.tempIdent = self.curToken.text
+            if self.symbolExists(self.tempIdent):
+                self.nextToken()
+                self.squareBrackets()
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
 
         elif self.checkToken(TokenType.ROUNDBRACKETLEFT):
             self.nextToken()

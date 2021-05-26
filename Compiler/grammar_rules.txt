@@ -1,3 +1,12 @@
 program := {statement}
-statement := IDENT "=" data ";"
-data :- true | false | IDENT | NUMBER
+
+statement := IDENT "=" expression ";"
+    | If comparison "{" {statement} "}"
+
+comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
+expression ::= term {( "-" | "+" ) term}
+term ::= unary {( "/" | "*" ) unary}
+unary ::= ["+" | "-"] module
+module := exp {("%" exp)}
+exp := primary {"**" }
+primary ::= number | ident | "(" expression ")"
