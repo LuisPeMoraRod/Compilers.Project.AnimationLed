@@ -2,7 +2,9 @@ program := {statement}
 
 statement := IDENT "=" expression ";"
     | If comparison "{" {statement} "}"
+    | Procedure IDENT "(" {params} ")" "{" {statement} "}"
 
+params ::= {IDENT ","} {IDENT}
 comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
 expression ::= term {( "-" | "+" ) term}
 term ::= unary {( "/" | "*" ) unary}

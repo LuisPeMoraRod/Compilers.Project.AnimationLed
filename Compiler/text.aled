@@ -1,11 +1,1 @@
-foo = 6 ** 6 + 5 // 5 + 7;
-boolvar = true;
-listvar = 0;
-If listvar[foo] == false {
-    If foo > 0 {
-        boolvar = false;
-    };
-    foo2 = 3;
-};
-
-boolvar = true;
+Procedure main (param1, param2){};
