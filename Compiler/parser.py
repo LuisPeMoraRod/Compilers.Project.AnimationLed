@@ -67,26 +67,45 @@ class Parser:
             self.match(TokenType.EQ)
 
             if self.checkToken(TokenType.true):
-                if self.getSymbol(self.tempIdent) == TokenType.NUMBER:
+                if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.true)
                 self.tempType = TokenType.BOOLEAN
 
             elif self.checkToken(TokenType.false):
-                if self.getSymbol(self.tempIdent) == TokenType.NUMBER:
+                if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.false)
                 self.tempType = TokenType.BOOLEAN
+            
+            elif self.checkToken(TokenType.SQRBRACKETLEFT):
+                listIdent = self.tempIdent
+                self.match(TokenType.SQRBRACKETLEFT)
+                for i in range(7): #7 elements + COMMA
+                    self.checkLstElmnt()
+                    self.match(TokenType.COMA)
+                self.checkLstElmnt() #last element
+                self.match(TokenType.SQRBRACKETRIGHT)
+
+                self.tempIdent = listIdent
+                self.tempType = TokenType.LIST
+
 
             else:
                 self.expression()
                 self.tempType = TokenType.NUMBER
-                if self.getSymbol(self.tempIdent) == TokenType.BOOLEAN:
+                symbolType = self.getSymbolType(self.tempIdent) 
+                if symbolType == TokenType.BOOLEAN:
                     self.abort("Attempting to assign a NUMBER to a BOOLEAN typed variable: " + self.tempIdent)
+
+                elif symbolType == TokenType.LIST:
+                    self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
+            
             
             if not self.symbolExists(self.tempIdent):
+                print("Adding "+ self.tempIdent)
                 self.addSymbol(self.tempIdent, self.tempType, True) #OJO True means that they are all global variables (needs to be changed when Procedures are implemented)
 
         elif self.checkToken(TokenType.If):
@@ -249,10 +268,31 @@ class Parser:
         newSymbol = [identifier, dataType, isGlobal]
         self.symbols.append(newSymbol)
 
-    def getSymbol(self, identifier):
+    #Returns data type of given identifier. If variable hasn't been declared, returns None
+    def getSymbolType(self, identifier):
         for symbol in self.symbols:
             if symbol[0] == identifier:
                 return symbol[1]
         return None
 
-    
+
+    def checkLstElmnt (self):
+        if self.checkToken(TokenType.true):
+            self.match(TokenType.true)
+
+        elif self.checkToken(TokenType.false):
+            self.match(TokenType.false)
+            
+        elif self.checkToken(TokenType.IDENT):
+            self.tempIdent = self.curToken.text
+            self.tempType = self.getSymbolType(self.tempIdent)
+            if self.tempType != None:
+                if self.tempType == TokenType.BOOLEAN:
+                    self.nextToken()
+                else:
+                    self.abort("Attempting to assign a NON BOOLEAN variable to a list element: " + self.tempIdent)
+            else:
+                self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+        else: 
+            self.match(TokenType.BOOLEAN) #abort: invalid data type. must be a boolean
+
