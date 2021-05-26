@@ -9,4 +9,6 @@ term ::= unary {( "/" | "*" ) unary}
 unary ::= ["+" | "-"] module
 module := exp {("%" exp)}
 exp := primary {"**" }
-primary ::= number | ident | "(" expression ")"
+primary ::= number | ident{squareBrackets} | "(" expression ")"
+
+squareBrackets := "[" (expression | ":" "," )

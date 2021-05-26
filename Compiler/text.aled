@@ -1,6 +1,7 @@
 foo = 6 ** 6 + 5 // 5 + 7;
 boolvar = true;
-If listvar[:,2] == false {
+listvar = 0;
+If listvar[foo] == false {
     If foo > 0 {
         boolvar = false;
     };

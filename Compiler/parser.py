@@ -230,7 +230,8 @@ class Parser:
             if self.checkToken(TokenType.DOUBLEDOT):
                 self.match(TokenType.DOUBLEDOT)
                 self.match(TokenType.COMA)
-                self.match(TokenType.NUMBER) # OJO missing validation for range overload (unexistent column)
+                self.expression()
+                #self.match(TokenType.NUMBER) # OJO missing validation for range overload (unexistent column)
                 self.match(TokenType.SQRBRACKETRIGHT)
             else:
                 self.expression()
