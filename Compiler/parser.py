@@ -122,8 +122,12 @@ class Parser:
             else:
                 self.params()
 
-            if not self.procedureExists(self.tempProcedure):
-                self.addProcedure(self.tempProcedure, self.tempParameters)
+            if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
+                self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
+                self.tempProcedure = None
+                self.tempParameters = []
+            else:
+                self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
 
             self.match(TokenType.CURLYBRACKETLEFT)
 
@@ -303,13 +307,14 @@ class Parser:
         return None
 
     #Add new procedure
-    def addProcedure(self, identifier, paramList):
-        newProcedure = [identifier] + paramList
+    def addProcedure(self, identifier, numberOfParams, paramList):
+        newProcedure = [identifier] + [numberOfParams] + paramList
         self.procedures.append(newProcedure)
 
     #Check if procedure already exists
-    def procedureExists(self, identifier):
+    def procedureExists(self, identifier, paramLenght):
         for procedure in self.procedures:
-            if procedure[0] == identifier:
+            if procedure[0] == identifier and procedure[1] == paramLenght:
+                print("Got into here")
                 return True
         return False

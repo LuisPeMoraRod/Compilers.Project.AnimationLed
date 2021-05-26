@@ -1,1 +1,2 @@
-Procedure main (param1, param2){};
+Procedure main (param){};
+Procedure main (param){};
