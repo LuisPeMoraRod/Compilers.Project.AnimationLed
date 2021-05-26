@@ -1,0 +1,3 @@
+program := {statement}
+statement := IDENT "=" data ";"
+data :- true | false | IDENT | NUMBER

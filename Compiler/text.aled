@@ -1,0 +1,10 @@
+foo = 6 ** 6 + 5 // 5 + 7;
+boolvar = true;
+If listvar[:,2] == false {
+    If foo > 0 {
+        boolvar = false;
+    };
+    foo2 = 3;
+};
+
+boolvar = 1;
