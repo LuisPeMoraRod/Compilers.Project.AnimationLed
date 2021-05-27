@@ -1,5 +1,6 @@
 Procedure Main (param)
 {
+
     foo=1;
     boolvar = true;
     listvar = [true, false, true, false, boolvar, false, true, false];
@@ -10,5 +11,5 @@ Procedure Main (param)
 
 Procedure main2 (param)
 {
-    foo3 = foo;
+    foo3 = param;
 };

@@ -11,7 +11,6 @@ class Parser:
 
         self.symbols = []    # Variables declared so far and their types and values
         self.procedures = [] # Procedures declared so far with their parameter names
-        self.activeProcedure = None
 
         #Variables used for procedure call
         self.tempProcedureCall = None
@@ -70,7 +69,6 @@ class Parser:
         self.match(TokenType.Procedure)
         print("STATEMENT-PROCEDURE-DEFINITION")
         self.tempProcedure = self.curToken.text
-        #self.activeProcedure = self.tempProcedure
         self.nextToken()
         self.match(TokenType.ROUNDBRACKETLEFT)
 
@@ -91,6 +89,8 @@ class Parser:
             self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
 
         # Define parameters as local variables
+        for param in self.tempParameters:
+            self.addSymbol(param, None, self.tempProcedure)
 
         self.match(TokenType.CURLYBRACKETLEFT)
 
