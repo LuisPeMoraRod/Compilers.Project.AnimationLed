@@ -2,6 +2,12 @@ Procedure main (param)
 {
 
 boolvar = true;
+listvar = [true, false, true, false, boolvar, false, true, false];
+If listvar[foo] == false {
+    If foo > 0 {
+        boolvar = false;
+    };
+    foo2 = 3;
 };
 Procedure main2 (param)
 {
