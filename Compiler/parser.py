@@ -1,4 +1,3 @@
-from lexer import TokenType
 import sys
 from lexer import *
 
@@ -9,7 +8,7 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
 
-        self.symbols = []    # Variables declared so far and their types and values
+        self.symbols = []    # Variables declared so far and their types and values        self.procedures = [] # Procedures declared so far with their parameter names      self.procedures = [] # Procedures declared so far with their parameter names
         self.procedures = [] # Procedures declared so far with their parameter names
 
         #Variables used for procedure call
@@ -19,7 +18,6 @@ class Parser:
         #Variables used for logic validations in Procedures
         self.tempProcedure = None
         self.tempParameters = []
-
         #Variables used for logic validations: e.g. check if a variable already exists
         self.tempIdent  = None 
         self.tempType = None
@@ -67,8 +65,7 @@ class Parser:
         # One of the following statements...
     def statement(self):
         # Check the first token to see what kind of statement this is.
-
-        #statement := Call IDENT "(" ")"
+  #statement := Call IDENT "(" ")"
         if self.checkToken(TokenType.Call):
             print("STATEMENT-PROCEDURE-CALL")
             self.nextToken()
@@ -90,28 +87,27 @@ class Parser:
 
         # statement := ident "=" (expression | true | false) ";" 
         elif self.checkToken(TokenType.IDENT):
-
             print("STATEMENT-VAR DEFINITION")
             self.tempIdent = self.curToken.text
 
             self.nextToken()
-            self.match(TokenType.EQ)
+            self.match(TokenType.EQ) # identifier followed by =
 
-            if self.checkToken(TokenType.true):
+            if self.checkToken(TokenType.true): # = true
                 if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.true)
                 self.tempType = TokenType.BOOLEAN
 
-            elif self.checkToken(TokenType.false):
+            elif self.checkToken(TokenType.false): # = false
                 if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.false)
                 self.tempType = TokenType.BOOLEAN
             
-            elif self.checkToken(TokenType.SQRBRACKETLEFT):
+            elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
                 listIdent = self.tempIdent
                 self.match(TokenType.SQRBRACKETLEFT)
                 for i in range(7): #7 elements + COMMA
@@ -122,9 +118,10 @@ class Parser:
 
                 self.tempIdent = listIdent
                 self.tempType = TokenType.LIST
-
-
-            else:
+            
+            #elif self.checkToken(TokenType.IDENT):
+                
+            else: # aritmetic expression
                 self.expression()
                 self.tempType = TokenType.NUMBER
                 symbolType = self.getSymbolType(self.tempIdent) 
@@ -135,9 +132,8 @@ class Parser:
                     self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
             
             
-            if not self.symbolExists(self.tempIdent):
-                print("Adding "+ self.tempIdent)
-                self.addSymbol(self.tempIdent, self.tempType, True) #OJO True means that they are all global variables (needs to be changed when Procedures are implemented)
+            if not self.symbolExists(self.tempIdent): #adds new variable to symbol table
+                self.addSymbol(self.tempIdent, self.tempType, 'main') #OJO last parameter tells procedure in which variable has been declare (if declared in main it's a global variable)
 
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
@@ -151,7 +147,6 @@ class Parser:
                 self.statement()
 
             self.match(TokenType.CURLYBRACKETRIGHT)
-
         elif self.checkToken(TokenType.Procedure):
             print("STATEMENT-PROCEDURE-DEFINITION")
             self.nextToken()
@@ -191,7 +186,6 @@ class Parser:
 
         # Newline.
         self.semicolon()
-
     def params(self, parameterList):
         print("PARAMETERS")
         while True:
@@ -206,8 +200,6 @@ class Parser:
             if not self.checkToken(TokenType.COMA):
                 self.abort("Expected a COMA ',' at " + self.curToken.text)
             self.nextToken()
-        
-
     # semicolon ::= ';'+
     def semicolon(self):
         print("SEMICOLON")
@@ -306,7 +298,7 @@ class Parser:
             self.tempIdent = self.curToken.text
             if self.symbolExists(self.tempIdent):
                 self.nextToken()
-                self.squareBrackets()
+                self.squareBrackets(self.tempIdent)
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
 
@@ -321,19 +313,22 @@ class Parser:
             self.abort("Unexpected token at " + self.curToken.text)  
     
     #squareBrackets ::= "[" ( expression | ":" "," number) "]"
-    def squareBrackets(self):
+    def squareBrackets(self, identifier):
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             print("SQUARE BRACKETS")
-            self.nextToken()
-            if self.checkToken(TokenType.DOUBLEDOT):
-                self.match(TokenType.DOUBLEDOT)
-                self.match(TokenType.COMA)
-                self.expression()
-                #self.match(TokenType.NUMBER) # OJO missing validation for range overload (unexistent column)
-                self.match(TokenType.SQRBRACKETRIGHT)
+            if self.getSymbolType(identifier) == TokenType.LIST:
+                self.nextToken()
+                if self.checkToken(TokenType.DOUBLEDOT):
+                    self.match(TokenType.DOUBLEDOT)
+                    self.match(TokenType.COMA)
+                    self.expression()
+                    #self.match(TokenType.NUMBER) # OJO missing validation for range overload (unexistent column)
+                    self.match(TokenType.SQRBRACKETRIGHT)
+                else:
+                    self.expression()
+                    self.match(TokenType.SQRBRACKETRIGHT)
             else:
-                self.expression()
-                self.match(TokenType.SQRBRACKETRIGHT)
+                self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
     
     #Checks if symbol already exists
     def symbolExists(self, identifier):
@@ -343,8 +338,8 @@ class Parser:
         return False
     
     #Add new variable to set
-    def addSymbol(self, identifier, dataType, isGlobal):
-        newSymbol = [identifier, dataType, isGlobal]
+    def addSymbol(self, identifier, dataType, scope):
+        newSymbol = [identifier, dataType, scope]
         self.symbols.append(newSymbol)
 
     #Returns data type of given identifier. If variable hasn't been declared, returns None
@@ -359,6 +354,7 @@ class Parser:
         newProcedure = [identifier] + [numberOfParams] + paramList
         self.procedures.append(newProcedure)
 
+    #Checks if token is a valid list element: boolean
     def checkLstElmnt (self):
         if self.checkToken(TokenType.true):
             self.match(TokenType.true)
@@ -378,7 +374,6 @@ class Parser:
                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else: 
             self.match(TokenType.BOOLEAN) #abort: invalid data type. must be a boolean
-
 
     #Check if procedure already exists
     def procedureExists(self, identifier, paramLenght):
