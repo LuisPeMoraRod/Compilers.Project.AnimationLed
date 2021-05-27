@@ -62,9 +62,46 @@ class Parser:
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
+            self.procedure()
+            #self.statement()
+
+    def procedure(self):
+        self.match(TokenType.Procedure)
+        print("STATEMENT-PROCEDURE-DEFINITION")
+        #self.nextToken()
+        self.tempProcedure = self.curToken.text
+        self.nextToken()
+        self.match(TokenType.ROUNDBRACKETLEFT)
+
+        #Procedure without parameters
+        if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
+            self.tempParameters = []
+            self.nextToken()
+
+        #Procedure with parameters
+        else:
+            self.params(self.tempParameters)
+
+        # Save the procedure name if doesn't exists yet
+        if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
+            self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
+            self.tempProcedure = None
+            self.tempParameters = []
+        else:
+            self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
+
+        self.match(TokenType.CURLYBRACKETLEFT)
+
+        # Zero or more statements in the body.
+        while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
             self.statement()
 
-        # One of the following statements...
+        self.match(TokenType.CURLYBRACKETRIGHT)
+
+        # Newline.
+        self.semicolon()
+
+    # One of the following statements...
     def statement(self):
         # Check the first token to see what kind of statement this is.
 
@@ -152,37 +189,7 @@ class Parser:
 
             self.match(TokenType.CURLYBRACKETRIGHT)
 
-        elif self.checkToken(TokenType.Procedure):
-            print("STATEMENT-PROCEDURE-DEFINITION")
-            self.nextToken()
-            self.tempProcedure = self.curToken.text
-            self.nextToken()
-            self.match(TokenType.ROUNDBRACKETLEFT)
-
-            #Procedure without parameters
-            if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
-                self.tempParameters = []
-                self.nextToken()
-
-            #Procedure with parameters
-            else:
-                self.params(self.tempParameters)
-
-            # Save the procedure name if doesn't exists yet
-            if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
-                self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
-                self.tempProcedure = None
-                self.tempParameters = []
-            else:
-                self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
-
-            self.match(TokenType.CURLYBRACKETLEFT)
-
-            # Zero or more statements in the body.
-            while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
-                self.statement()
-
-            self.match(TokenType.CURLYBRACKETRIGHT)
+        
 
         # This is not a valid statement. Error!
         else:
