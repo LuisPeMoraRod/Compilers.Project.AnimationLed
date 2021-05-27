@@ -1,5 +1,5 @@
 from  lexer import Lexer
-from lexer import TokenType
+from tokenType import TokenType
 
 def main():
     input = "If+-123 foo*For/ true false"

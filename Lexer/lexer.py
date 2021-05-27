@@ -1,7 +1,8 @@
-import enum
 import sys
+from tokenType import TokenType
 
 class Lexer:
+
     def __init__(self, input):
         self.source = input + '\n' # Source code to lex as a string. Append a newline to simplify lexing/parsing the last token/statement.
         self.curChar = ''   # Current character in the string.
@@ -168,7 +169,7 @@ class Lexer:
             token = Token(tokText, TokenType.NUMBER)
 
         elif self.curChar.isalpha():
-            # Leading character is a letter, so this must be an identifier or a keyword.
+            # Leading character is a letter, so this must be an identifier, a keyword. or a variable
             # Get all consecutive alpha numeric characters.
             startPos = self.curPos
             while self.peek().isalnum():
@@ -178,7 +179,10 @@ class Lexer:
             tokText = self.source[startPos : self.curPos + 1] # Get the substring.
             keyword = Token.checkIfKeyword(tokText)
             if keyword == None: # Identifier
-                token = Token(tokText, TokenType.IDENT)
+                if len(tokText) <= 10:
+                    token = Token(tokText, TokenType.IDENT)
+                else:
+                    self.abort("Word exceeds the 10 character limit")
             else:   # Keyword
                 token = Token(tokText, keyword)
 
@@ -209,42 +213,3 @@ class Token:
             if kind.name == tokenText and kind.value >= 100 and kind.value < 200:
                 return kind
         return None
-
-
-# TokenType is our enum for all the types of tokens.
-class TokenType(enum.Enum):
-	EOF = -1
-	SEMICOLON = 0
-	NUMBER = 1
-	IDENT = 2
-	STRING = 3
-	DOT = 4
-	COMA = 5
-	# Keywords.
-	For = 101
-	In = 102
-	If = 103
-	Procedure = 104
-	true = 105
-	false = 106
-	# Operators.
-	EQ = 201  
-	PLUS = 202
-	MINUS = 203
-	ASTERISK = 204
-	SLASH = 205
-	EQEQ = 206
-	NOTEQ = 207
-	LT = 208
-	LTEQ = 209
-	GT = 210
-	GTEQ = 211
-	SLASHD = 212
-	MODULE = 213
-	# Other symbols
-	CURLYBRACKETLEFT = 301
-	CURLYBRACKETRIGHT = 302
-	ROUNDBRACKETLEFT = 303
-	ROUNDBRACKETRIGHT = 304
-	SQRBRACKETLEFT = 305
-	SQRBRACKETRIGHT = 306
