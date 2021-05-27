@@ -1,4 +1,6 @@
-foo = 6 ** 6 + 5 // 5 + 7;
+Procedure main (param)
+{
+
 boolvar = true;
 listvar = [true, false, true, false, boolvar, false, true, false];
 If listvar[foo] == false {
@@ -7,5 +9,9 @@ If listvar[foo] == false {
     };
     foo2 = 3;
 };
+Procedure main2 (param)
+{
 
-boolvar = true;
+};
+
+Call main(param);

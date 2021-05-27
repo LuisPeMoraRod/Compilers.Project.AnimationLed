@@ -1,3 +1,4 @@
+from lexer import TokenType
 import sys
 from lexer import *
 
@@ -9,6 +10,15 @@ class Parser:
         self.lexer = lexer
 
         self.symbols = []    # Variables declared so far and their types and values
+        self.procedures = [] # Procedures declared so far with their parameter names
+
+        #Variables used for procedure call
+        self.tempProcedureCall = None
+        self.tempParameterCall = []
+
+        #Variables used for logic validations in Procedures
+        self.tempProcedure = None
+        self.tempParameters = []
 
         #Variables used for logic validations: e.g. check if a variable already exists
         self.tempIdent  = None 
@@ -58,8 +68,29 @@ class Parser:
     def statement(self):
         # Check the first token to see what kind of statement this is.
 
+        #statement := Call IDENT "(" ")"
+        if self.checkToken(TokenType.Call):
+            print("STATEMENT-PROCEDURE-CALL")
+            self.nextToken()
+            self.checkToken(TokenType.IDENT)
+            self.tempProcedureCall = self.curToken.text
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+
+            if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
+                self.tempParameterCall = []
+            else:
+                self.params(self.tempParameterCall)
+
+            if self.procedureExists(self.tempProcedureCall, len(self.tempParameterCall)):
+                    self.tempProcedureCall = None
+                    self.tempParameterCall = []
+            else:
+                self.abort("Undefined procedure call at " + self.tempProcedureCall + " (" + str(len(self.tempParameterCall)) + ")")
+
         # statement := ident "=" (expression | true | false) ";" 
-        if self.checkToken(TokenType.IDENT):
+        elif self.checkToken(TokenType.IDENT):
+
             print("STATEMENT-VAR DEFINITION")
             self.tempIdent = self.curToken.text
 
@@ -120,7 +151,39 @@ class Parser:
                 self.statement()
 
             self.match(TokenType.CURLYBRACKETRIGHT)
-        
+
+        elif self.checkToken(TokenType.Procedure):
+            print("STATEMENT-PROCEDURE-DEFINITION")
+            self.nextToken()
+            self.tempProcedure = self.curToken.text
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+
+            #Procedure without parameters
+            if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
+                self.tempParameters = []
+                self.nextToken()
+
+            #Procedure with parameters
+            else:
+                self.params(self.tempParameters)
+
+            # Save the procedure name if doesn't exists yet
+            if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
+                self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
+                self.tempProcedure = None
+                self.tempParameters = []
+            else:
+                self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
+
+            self.match(TokenType.CURLYBRACKETLEFT)
+
+            # Zero or more statements in the body.
+            while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+                self.statement()
+
+            self.match(TokenType.CURLYBRACKETRIGHT)
+
         # This is not a valid statement. Error!
         else:
             self.abort("Invalid statement at " + self.curToken.text + " (" + self.curToken.kind.name + ")")
@@ -128,7 +191,23 @@ class Parser:
 
         # Newline.
         self.semicolon()
-    
+
+    def params(self, parameterList):
+        print("PARAMETERS")
+        while True:
+            if self.checkToken(TokenType.IDENT):
+                parameterList.append(self.curToken.text)
+            else:
+                self.abort("Invalid parameter statement at " + self.curToken.text + " (" + self.curToken.kind.name + ")")
+            self.nextToken()
+            if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
+                self.nextToken()
+                break
+            if not self.checkToken(TokenType.COMA):
+                self.abort("Expected a COMA ',' at " + self.curToken.text)
+            self.nextToken()
+        
+
     # semicolon ::= ';'+
     def semicolon(self):
         print("SEMICOLON")
@@ -275,6 +354,10 @@ class Parser:
                 return symbol[1]
         return None
 
+    #Add new procedure
+    def addProcedure(self, identifier, numberOfParams, paramList):
+        newProcedure = [identifier] + [numberOfParams] + paramList
+        self.procedures.append(newProcedure)
 
     def checkLstElmnt (self):
         if self.checkToken(TokenType.true):
@@ -296,3 +379,11 @@ class Parser:
         else: 
             self.match(TokenType.BOOLEAN) #abort: invalid data type. must be a boolean
 
+
+    #Check if procedure already exists
+    def procedureExists(self, identifier, paramLenght):
+        for procedure in self.procedures:
+            # True if has the same name and the same amount of parameters
+            if procedure[0] == identifier and procedure[1] == paramLenght:
+                return True
+        return False
