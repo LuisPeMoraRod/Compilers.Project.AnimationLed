@@ -11,6 +11,7 @@ class Parser:
 
         self.symbols = []    # Variables declared so far and their types and values
         self.procedures = [] # Procedures declared so far with their parameter names
+        self.activeProcedure = None
 
         #Variables used for procedure call
         self.tempProcedureCall = None
@@ -68,8 +69,8 @@ class Parser:
     def procedure(self):
         self.match(TokenType.Procedure)
         print("STATEMENT-PROCEDURE-DEFINITION")
-        #self.nextToken()
         self.tempProcedure = self.curToken.text
+        #self.activeProcedure = self.tempProcedure
         self.nextToken()
         self.match(TokenType.ROUNDBRACKETLEFT)
 
@@ -85,24 +86,27 @@ class Parser:
         # Save the procedure name if doesn't exists yet
         if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
             self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
-            self.tempProcedure = None
-            self.tempParameters = []
+
         else:
             self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
+
+        # Define parameters as local variables
 
         self.match(TokenType.CURLYBRACKETLEFT)
 
         # Zero or more statements in the body.
         while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
-            self.statement()
+            self.statement(self.tempProcedure)
 
         self.match(TokenType.CURLYBRACKETRIGHT)
 
+        self.tempProcedure = None
+        self.tempParameters = []
         # Newline.
         self.semicolon()
 
     # One of the following statements...
-    def statement(self):
+    def statement(self, procedure):
         # Check the first token to see what kind of statement this is.
 
         #statement := Call IDENT "(" ")"
@@ -135,14 +139,14 @@ class Parser:
             self.match(TokenType.EQ)
 
             if self.checkToken(TokenType.true):
-                if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.true)
                 self.tempType = TokenType.BOOLEAN
 
             elif self.checkToken(TokenType.false):
-                if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.false)
@@ -164,7 +168,7 @@ class Parser:
             else:
                 self.expression()
                 self.tempType = TokenType.NUMBER
-                symbolType = self.getSymbolType(self.tempIdent) 
+                symbolType = self.getSymbolType(self.tempIdent, procedure) 
                 if symbolType == TokenType.BOOLEAN:
                     self.abort("Attempting to assign a NUMBER to a BOOLEAN typed variable: " + self.tempIdent)
 
@@ -172,9 +176,9 @@ class Parser:
                     self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
             
             
-            if not self.symbolExists(self.tempIdent):
+            if not self.symbolExists(self.tempIdent, procedure):
                 print("Adding "+ self.tempIdent)
-                self.addSymbol(self.tempIdent, self.tempType, True) #OJO True means that they are all global variables (needs to be changed when Procedures are implemented)
+                self.addSymbol(self.tempIdent, self.tempType, procedure) #OJO True means that they are all global variables (needs to be changed when Procedures are implemented)
 
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
@@ -185,7 +189,7 @@ class Parser:
 
             # Zero or more statements in the body.
             while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
-                self.statement()
+                self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
 
@@ -311,7 +315,7 @@ class Parser:
 
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
-            if self.symbolExists(self.tempIdent):
+            if self.symbolExists(self.tempIdent, self.tempProcedure):
                 self.nextToken()
                 self.squareBrackets()
             else:
@@ -343,21 +347,22 @@ class Parser:
                 self.match(TokenType.SQRBRACKETRIGHT)
     
     #Checks if symbol already exists
-    def symbolExists(self, identifier):
+    def symbolExists(self, identifier, scope):
         for symbol in self.symbols:
-            if symbol[0] == identifier:
+            if symbol[0] == identifier and (symbol[2] == scope or symbol[2] == 'Main'):
                 return True
         return False
     
     #Add new variable to set
-    def addSymbol(self, identifier, dataType, isGlobal):
-        newSymbol = [identifier, dataType, isGlobal]
+    def addSymbol(self, identifier, dataType, scope):
+        newSymbol = [identifier, dataType, scope]
         self.symbols.append(newSymbol)
 
     #Returns data type of given identifier. If variable hasn't been declared, returns None
-    def getSymbolType(self, identifier):
+    def getSymbolType(self, identifier, scope):
         for symbol in self.symbols:
-            if symbol[0] == identifier:
+            if symbol[0] == identifier \
+                and (symbol[2] == scope or symbol[2] == 'Main'):
                 return symbol[1]
         return None
 
@@ -375,7 +380,7 @@ class Parser:
             
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
-            self.tempType = self.getSymbolType(self.tempIdent)
+            self.tempType = self.getSymbolType(self.tempIdent, self.tempProcedure)
             if self.tempType != None:
                 if self.tempType == TokenType.BOOLEAN:
                     self.nextToken()
