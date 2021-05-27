@@ -1,2 +1,11 @@
-Procedure main (param){};
-Procedure main (param){};
+Procedure main (param)
+{
+
+boolvar = true;
+};
+Procedure main2 (param)
+{
+
+};
+
+Call main(param);

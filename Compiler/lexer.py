@@ -244,6 +244,7 @@ class TokenType(enum.Enum):
     Procedure = 104
     true = 105
     false = 106
+    Call = 107
     # Operators.
     EQ = 201
     PLUS = 202 
