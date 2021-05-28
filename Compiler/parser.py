@@ -9,12 +9,15 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
 
+        self.hasMainProcedure = False #Helps to know if there is one and only one Main procedure
+
         self.symbols = []    # Variables declared so far and their types and values
         self.procedures = [] # Procedures declared so far with their parameter names
 
         #Variables used for procedure call
         self.tempProcedureCall = None
         self.tempParameterCall = []
+        self.tempMainCalls = [] #Needed for ignoring Main procedure calls temporaly
 
         #Variables used for logic validations in Procedures
         self.tempProcedure = None
@@ -65,10 +68,28 @@ class Parser:
             self.procedure()
             #self.statement()
 
+        #Checks the pending Main procedure calls
+        for mainCall in self.tempMainCalls:
+            if not self.procedureExists(mainCall[0], len(mainCall[1])):
+                self.abort("Undefined procedure call at " + mainCall[0] + " (" + str(len(mainCall[1])) + ")")
+
+
     def procedure(self):
         self.match(TokenType.Procedure)
         print("STATEMENT-PROCEDURE-DEFINITION")
         self.tempProcedure = self.curToken.text
+
+        #Has only one Main procedure validations
+        if self.hasMainProcedure and self.tempProcedure == 'Main':
+            self.abort("Multiple definition of Main method")
+
+        #Checks if the first procedure is Main
+        if not self.hasMainProcedure:
+            if self.tempProcedure != 'Main':
+                self.abort("First Procedure is not Main")
+            else:
+                self.hasMainProcedure = True
+
         self.nextToken()
         self.match(TokenType.ROUNDBRACKETLEFT)
 
@@ -100,6 +121,10 @@ class Parser:
 
         self.match(TokenType.CURLYBRACKETRIGHT)
 
+        #Checks if the Main method has no parameters
+        if len(self.tempParameters) != 0:
+            self.abort("Main method has parameters and needs zero (0) parameters")
+
         self.tempProcedure = None
         self.tempParameters = []
         # Newline.
@@ -120,14 +145,20 @@ class Parser:
 
             if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
                 self.tempParameterCall = []
+                self.nextToken()
             else:
                 self.params(self.tempParameterCall)
 
-            if self.procedureExists(self.tempProcedureCall, len(self.tempParameterCall)):
+            if not procedure == 'Main':
+                if self.procedureExists(self.tempProcedureCall, len(self.tempParameterCall)):
                     self.tempProcedureCall = None
                     self.tempParameterCall = []
+                else:
+                    self.abort("Undefined procedure call at " + self.tempProcedureCall + " (" + str(len(self.tempParameterCall)) + ")")
             else:
-                self.abort("Undefined procedure call at " + self.tempProcedureCall + " (" + str(len(self.tempParameterCall)) + ")")
+                self.tempMainCalls.append((self.tempProcedureCall, self.tempParameterCall))
+                self.tempProcedureCall = None
+                self.tempParameterCall =[]
 
         # statement := ident "=" (expression | true | false) ";" 
         elif self.checkToken(TokenType.IDENT):
