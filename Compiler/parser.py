@@ -54,6 +54,7 @@ class Parser:
         self.peekToken = self.lexer.getToken()
         # No need to worry about passing the EOF, lexer handles that.
 
+    # Finished the program to indicate an Error
     def abort(self, message):
         sys.exit("Error. " + message + " at Line " + str(self.lexer.curLine))
 
@@ -65,15 +66,14 @@ class Parser:
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
-            self.procedure()
-            #self.statement()
+            self.procedure() # The whole program made of procedures
 
-        #Checks the pending Main procedure calls
+        #Checks the pending Main procedure calls (were not checed before)
         for mainCall in self.tempMainCalls:
             if not self.procedureExists(mainCall[0], len(mainCall[1])):
                 self.abort("Undefined procedure call at " + mainCall[0] + " (" + str(len(mainCall[1])) + ")")
 
-
+    # procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
     def procedure(self):
         self.match(TokenType.Procedure)
         print("STATEMENT-PROCEDURE-DEFINITION")
@@ -139,7 +139,7 @@ class Parser:
             print("STATEMENT-PROCEDURE-CALL")
             self.nextToken()
             self.checkToken(TokenType.IDENT)
-            self.tempProcedureCall = self.curToken.text
+            self.tempProcedureCall = self.curToken.text # Saves name for validations
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
 
@@ -149,7 +149,9 @@ class Parser:
             else:
                 self.params(self.tempParameterCall)
 
+            # Program checks Main procedure calls at the end of the program (due to scope restrictions)
             if not procedure == 'Main':
+                # Checks if the called procedure exists
                 if self.procedureExists(self.tempProcedureCall, len(self.tempParameterCall)):
                     self.tempProcedureCall = None
                     self.tempParameterCall = []
