@@ -55,7 +55,7 @@ class Parser:
         # No need to worry about passing the EOF, lexer handles that.
 
     def abort(self, message):
-        sys.exit("Error. " + message)
+        sys.exit("Error. " + message + " at Line " + str(self.lexer.curLine))
 
         # Production rules.
 
@@ -122,7 +122,7 @@ class Parser:
         self.match(TokenType.CURLYBRACKETRIGHT)
 
         #Checks if the Main method has no parameters
-        if len(self.tempParameters) != 0:
+        if len(self.tempParameters) != 0 and self.tempProcedure == 'Main':
             self.abort("Main method has parameters and needs zero (0) parameters")
 
         self.tempProcedure = None

@@ -6,6 +6,7 @@ class Lexer:
         self.source = input + '\n' # Source code to lex as a string. Append a newline to simplify lexing/parsing the last token/statement.
         self.curChar = ''   # Current character in the string.
         self.curPos = -1    # Current position in the string.
+        self.curLine = 1
         self.nextChar()
 
     # Process the next character.
@@ -29,6 +30,8 @@ class Lexer:
     # Skip whitespace except newlines, which we will use to indicate the end of a statement.
     def skipWhitespace(self):
         while self.curChar == ' ' or self.curChar == '\t' or self.curChar == '\r' or self.curChar == '\n':
+            if self.curChar == '\n':
+                self.curLine +=1
             self.nextChar()
 		
     # Skip comments in the code.
