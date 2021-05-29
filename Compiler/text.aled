@@ -1,6 +1,5 @@
-Procedure Main ()
+Procedure Main (ss)
 {
-
     foo=1;
     boolvar = true;
     listvar = [true, false, true, false, boolvar, false, true, false];
@@ -8,9 +7,16 @@ Procedure Main ()
         foo2 = 3;
     };
     Call main2(param);
+    Call main4(param);
 };
 
 Procedure main2 (param)
+{
+    foo3 = param;
+    foo2 = foo;
+};
+
+Procedure main3 (param)
 {
     foo3 = param;
     foo2 = foo;

@@ -58,6 +58,10 @@ class Parser:
     def abort(self, message):
         sys.exit("Error. " + message + " at Line " + str(self.lexer.curLine))
 
+    # Finished the program to indicate an Error
+    def abortLine(self, message, lineNumber):
+        sys.exit("Error. " + message + " at Line " + str(lineNumber))
+
         # Production rules.
 
     # program ::= {statement}
@@ -71,7 +75,7 @@ class Parser:
         #Checks the pending Main procedure calls (were not checed before)
         for mainCall in self.tempMainCalls:
             if not self.procedureExists(mainCall[0], len(mainCall[1])):
-                self.abort("Undefined procedure call at " + mainCall[0] + " (" + str(len(mainCall[1])) + ")")
+                self.abortLine("Undefined procedure call " + mainCall[0] + " (" + str(len(mainCall[1])) + ")", mainCall[2]-1)
 
     # procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
     def procedure(self):
@@ -102,6 +106,10 @@ class Parser:
         else:
             self.params(self.tempParameters)
 
+        #Checks if the Main method has no parameters
+        if len(self.tempParameters) != 0 and self.tempProcedure == 'Main':
+            self.abort("Main method has parameters and needs zero (0) parameters")
+
         # Save the procedure name if doesn't exists yet
         if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
             self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
@@ -121,9 +129,6 @@ class Parser:
 
         self.match(TokenType.CURLYBRACKETRIGHT)
 
-        #Checks if the Main method has no parameters
-        if len(self.tempParameters) != 0 and self.tempProcedure == 'Main':
-            self.abort("Main method has parameters and needs zero (0) parameters")
 
         self.tempProcedure = None
         self.tempParameters = []
@@ -158,7 +163,7 @@ class Parser:
                 else:
                     self.abort("Undefined procedure call at " + self.tempProcedureCall + " (" + str(len(self.tempParameterCall)) + ")")
             else:
-                self.tempMainCalls.append((self.tempProcedureCall, self.tempParameterCall))
+                self.tempMainCalls.append((self.tempProcedureCall, self.tempParameterCall, self.lexer.curLine))
                 self.tempProcedureCall = None
                 self.tempParameterCall =[]
 
@@ -256,7 +261,9 @@ class Parser:
     def semicolon(self):
         print("SEMICOLON")
         # Require at least one newline.
-        self.match(TokenType.SEMICOLON)
+        #self.match(TokenType.SEMICOLON)
+        if not self.checkToken(TokenType.SEMICOLON):
+            self.abortLine("Expected SEMICOLON at the end of instruction", self.lexer.curLine-1)
         # But we will allow extra newlines too, of course.
         while self.checkToken(TokenType.SEMICOLON):
             self.nextToken()
