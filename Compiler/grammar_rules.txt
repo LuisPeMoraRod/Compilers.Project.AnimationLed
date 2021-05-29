@@ -1,8 +1,9 @@
-program := {statement}
+program := {procedure}
+
+procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
 
 statement := IDENT "=" expression ";"
     | If comparison "{" {statement} "}"
-    | Procedure IDENT "(" {params} ")" "{" {statement} "}"
     | IDENT "(" ")"
 
 params ::= {IDENT ","} {IDENT}

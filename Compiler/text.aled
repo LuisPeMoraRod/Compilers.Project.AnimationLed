@@ -1,15 +1,32 @@
-##listvar = [true, false, true, false, boolvar, false, true, true];
-Procedure main (param)
+
+ ##Esto es un comentario afura
+ ##cdcdc
+
+Procedure Main ()
 {
-    foo = 1;
+    ##Esto es un comentario afura
+ ##cdcdc
+    foo=1; ##cdcdc
     boolvar = true;
-    listvar = 1;
+    listvar = [true, false, true, false, boolvar, false, true, false];
     If listvar[foo] == false {
-        If foo > 0 {
-            boolvar = false;
-        };
         foo2 = 3;
     };
+    Call main2(param);
+    Call main3(param);
 };
 
-Call main (param);
+Procedure main2 (param)
+{
+    foo3 = param;
+    foo2 = foo;
+};
+
+Procedure main3 (param)
+{
+    foo3 = param;
+    foo2 = foo;
+};
+
+
+

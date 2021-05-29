@@ -8,12 +8,15 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
 
-        self.symbols = []    # Variables declared so far and their types and values        self.procedures = [] # Procedures declared so far with their parameter names      self.procedures = [] # Procedures declared so far with their parameter names
+        self.hasMainProcedure = False #Helps to know if there is one and only one Main procedure
+
+        self.symbols = []    # Variables declared so far and their types and values
         self.procedures = [] # Procedures declared so far with their parameter names
 
         #Variables used for procedure call
         self.tempProcedureCall = None
         self.tempParameterCall = []
+        self.tempMainCalls = [] #Needed for ignoring Main procedure calls temporaly
 
         #Variables used for logic validations in Procedures
         self.tempProcedure = None
@@ -49,8 +52,13 @@ class Parser:
         self.peekToken = self.lexer.getToken()
         # No need to worry about passing the EOF, lexer handles that.
 
+    # Finished the program to indicate an Error
     def abort(self, message):
-        sys.exit("Error. " + message)
+        sys.exit("Error. " + message + " at Line " + str(self.lexer.curLine))
+
+    # Finished the program to indicate an Error
+    def abortLine(self, message, lineNumber):
+        sys.exit("Error. " + message + " at Line " + str(lineNumber))
 
         # Production rules.
 
@@ -60,30 +68,101 @@ class Parser:
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
-            self.statement()
+            self.procedure() # The whole program made of procedures
 
-        # One of the following statements...
-    def statement(self):
+        #Checks the pending Main procedure calls (were not checed before)
+        for mainCall in self.tempMainCalls:
+            if not self.procedureExists(mainCall[0], len(mainCall[1])):
+                self.abortLine("Undefined procedure call " + mainCall[0] + " (" + str(len(mainCall[1])) + ")", mainCall[2]-1)
+
+    # procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
+    def procedure(self):
+        self.match(TokenType.Procedure)
+        print("STATEMENT-PROCEDURE-DEFINITION")
+        self.tempProcedure = self.curToken.text
+
+        #Has only one Main procedure validations
+        if self.hasMainProcedure and self.tempProcedure == 'Main':
+            self.abort("Multiple definition of Main method")
+
+        #Checks if the first procedure is Main
+        if not self.hasMainProcedure:
+            if self.tempProcedure != 'Main':
+                self.abort("First Procedure is not Main")
+            else:
+                self.hasMainProcedure = True
+
+        self.nextToken()
+        self.match(TokenType.ROUNDBRACKETLEFT)
+
+        #Procedure without parameters
+        if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
+            self.tempParameters = []
+            self.nextToken()
+
+        #Procedure with parameters
+        else:
+            self.params(self.tempParameters)
+
+        #Checks if the Main method has no parameters
+        if len(self.tempParameters) != 0 and self.tempProcedure == 'Main':
+            self.abort("Main method has parameters and needs zero (0) parameters")
+
+        # Save the procedure name if doesn't exists yet
+        if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
+            self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
+
+        else:
+            self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
+
+        # Define parameters as local variables
+        for param in self.tempParameters:
+            self.addSymbol(param, None, self.tempProcedure)
+
+        self.match(TokenType.CURLYBRACKETLEFT)
+
+        # Zero or more statements in the body.
+        while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+            self.statement(self.tempProcedure)
+
+        self.match(TokenType.CURLYBRACKETRIGHT)
+
+
+        self.tempProcedure = None
+        self.tempParameters = []
+        # Newline.
+        self.semicolon()
+
+    # One of the following statements...
+    def statement(self, procedure):
         # Check the first token to see what kind of statement this is.
   #statement := Call IDENT "(" ")"
         if self.checkToken(TokenType.Call):
             print("STATEMENT-PROCEDURE-CALL")
             self.nextToken()
             self.checkToken(TokenType.IDENT)
-            self.tempProcedureCall = self.curToken.text
+            self.tempProcedureCall = self.curToken.text # Saves name for validations
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
 
             if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
                 self.tempParameterCall = []
+                self.nextToken()
             else:
                 self.params(self.tempParameterCall)
 
-            if self.procedureExists(self.tempProcedureCall, len(self.tempParameterCall)):
+            # Program checks Main procedure calls at the end of the program (due to scope restrictions)
+            if not procedure == 'Main':
+                # Checks if the called procedure exists
+                if self.procedureExists(self.tempProcedureCall, len(self.tempParameterCall)):
                     self.tempProcedureCall = None
                     self.tempParameterCall = []
+                else:
+                    self.abort("Undefined procedure call at " + self.tempProcedureCall + " (" + str(len(self.tempParameterCall)) + ")")
             else:
-                self.abort("Undefined procedure call at " + self.tempProcedureCall + " (" + str(len(self.tempParameterCall)) + ")")
+                self.tempMainCalls.append((self.tempProcedureCall, self.tempParameterCall, self.lexer.curLine))
+                self.tempProcedureCall = None
+                self.tempParameterCall =[]
 
         # statement := ident "=" (expression | true | false) ";" 
         elif self.checkToken(TokenType.IDENT):
@@ -93,15 +172,15 @@ class Parser:
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
 
-            if self.checkToken(TokenType.true): # = true
-                if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
+            if self.checkToken(TokenType.true):
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.true)
                 self.tempType = TokenType.BOOLEAN
 
-            elif self.checkToken(TokenType.false): # = false
-                if self.getSymbolType(self.tempIdent) == TokenType.NUMBER:
+            elif self.checkToken(TokenType.false):
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
                     self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
 
                 self.match(TokenType.false)
@@ -124,7 +203,7 @@ class Parser:
             else: # aritmetic expression
                 self.expression()
                 self.tempType = TokenType.NUMBER
-                symbolType = self.getSymbolType(self.tempIdent) 
+                symbolType = self.getSymbolType(self.tempIdent, procedure) 
                 if symbolType == TokenType.BOOLEAN:
                     self.abort("Attempting to assign a NUMBER to a BOOLEAN typed variable: " + self.tempIdent)
 
@@ -132,8 +211,9 @@ class Parser:
                     self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
             
             
-            if not self.symbolExists(self.tempIdent): #adds new variable to symbol table
-                self.addSymbol(self.tempIdent, self.tempType, 'main') #OJO last parameter tells procedure in which variable has been declare (if declared in main it's a global variable)
+            if not self.symbolExists(self.tempIdent, procedure):
+                print("Adding "+ self.tempIdent)
+                self.addSymbol(self.tempIdent, self.tempType, procedure) #OJO True means that they are all global variables (needs to be changed when Procedures are implemented)
 
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
@@ -144,40 +224,11 @@ class Parser:
 
             # Zero or more statements in the body.
             while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
-                self.statement()
+                self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
-        elif self.checkToken(TokenType.Procedure):
-            print("STATEMENT-PROCEDURE-DEFINITION")
-            self.nextToken()
-            self.tempProcedure = self.curToken.text
-            self.nextToken()
-            self.match(TokenType.ROUNDBRACKETLEFT)
 
-            #Procedure without parameters
-            if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
-                self.tempParameters = []
-                self.nextToken()
-
-            #Procedure with parameters
-            else:
-                self.params(self.tempParameters)
-
-            # Save the procedure name if doesn't exists yet
-            if not self.procedureExists(self.tempProcedure, len(self.tempParameters)):
-                self.addProcedure(self.tempProcedure, len(self.tempParameters), self.tempParameters)
-                self.tempProcedure = None
-                self.tempParameters = []
-            else:
-                self.abort("The procedure " + self.tempProcedure + " (" + str(len(self.tempParameters)) + ") is already defined")
-
-            self.match(TokenType.CURLYBRACKETLEFT)
-
-            # Zero or more statements in the body.
-            while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
-                self.statement()
-
-            self.match(TokenType.CURLYBRACKETRIGHT)
+        
 
         # This is not a valid statement. Error!
         else:
@@ -204,7 +255,9 @@ class Parser:
     def semicolon(self):
         print("SEMICOLON")
         # Require at least one newline.
-        self.match(TokenType.SEMICOLON)
+        #self.match(TokenType.SEMICOLON)
+        if not self.checkToken(TokenType.SEMICOLON):
+            self.abortLine("Expected SEMICOLON at the end of instruction", self.lexer.curLine-1)
         # But we will allow extra newlines too, of course.
         while self.checkToken(TokenType.SEMICOLON):
             self.nextToken()
@@ -296,7 +349,7 @@ class Parser:
 
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
-            if self.symbolExists(self.tempIdent):
+            if self.symbolExists(self.tempIdent, self.tempProcedure):
                 self.nextToken()
                 self.squareBrackets(self.tempIdent)
             else:
@@ -331,9 +384,9 @@ class Parser:
                 self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
     
     #Checks if symbol already exists
-    def symbolExists(self, identifier):
+    def symbolExists(self, identifier, scope):
         for symbol in self.symbols:
-            if symbol[0] == identifier:
+            if symbol[0] == identifier and (symbol[2] == scope or symbol[2] == 'Main'):
                 return True
         return False
     
@@ -343,9 +396,10 @@ class Parser:
         self.symbols.append(newSymbol)
 
     #Returns data type of given identifier. If variable hasn't been declared, returns None
-    def getSymbolType(self, identifier):
+    def getSymbolType(self, identifier, scope):
         for symbol in self.symbols:
-            if symbol[0] == identifier:
+            if symbol[0] == identifier \
+                and (symbol[2] == scope or symbol[2] == 'Main'):
                 return symbol[1]
         return None
 
@@ -364,7 +418,7 @@ class Parser:
             
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
-            self.tempType = self.getSymbolType(self.tempIdent)
+            self.tempType = self.getSymbolType(self.tempIdent, self.tempProcedure)
             if self.tempType != None:
                 if self.tempType == TokenType.BOOLEAN:
                     self.nextToken()
