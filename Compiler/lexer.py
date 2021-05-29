@@ -42,10 +42,20 @@ class Lexer:
                 while self.curChar != '\n':
                     self.nextChar()
                 self.nextChar()
+
+    # Helper function to skip comments (this allows the user to place them everywhere)
+    def isCommentOrWhiteSpace(self):
+        if self.curChar in "#\n\t\r ":
+            return True
+        return False
+
     # Return the next token.
     def getToken(self):
-        self.skipWhitespace()
-        self.skipComment()
+
+        while self.isCommentOrWhiteSpace():
+            self.skipComment()
+            self.skipWhitespace()
+
         token = None
 
         # Check the first character of this token to see if we can decide what it is.

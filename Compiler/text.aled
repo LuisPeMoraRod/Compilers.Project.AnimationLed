@@ -1,13 +1,19 @@
-Procedure Main (ss)
+
+ ##Esto es un comentario afura
+ ##cdcdc
+
+Procedure Main ()
 {
-    foo=1;
+    ##Esto es un comentario afura
+ ##cdcdc
+    foo=1; ##cdcdc
     boolvar = true;
     listvar = [true, false, true, false, boolvar, false, true, false];
     If listvar[foo] == false {
         foo2 = 3;
     };
     Call main2(param);
-    Call main4(param);
+    Call main3(param);
 };
 
 Procedure main2 (param)
