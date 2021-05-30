@@ -369,7 +369,7 @@ class Parser:
     def squareBrackets(self, identifier):
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             print("SQUARE BRACKETS")
-            if self.getSymbolType(identifier) == TokenType.LIST:
+            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST:
                 self.nextToken()
                 if self.checkToken(TokenType.DOUBLEDOT):
                     self.match(TokenType.DOUBLEDOT)
