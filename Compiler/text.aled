@@ -1,32 +1,26 @@
-
- ##Esto es un comentario afura
- ##cdcdc
-
+##listvar = [true, false, true, false, boolvar, false, true, true];
 Procedure Main ()
 {
-    ##Esto es un comentario afura
+    ##Esto es un comentario afuera
  ##cdcdc
     foo=1; ##cdcdc
     boolvar = true;
-    listvar = [true, false, true, false, boolvar, false, true, false];
+    listvar = [true, false, true, false, boolvar, false, true, true];
+    If listvar[1:3] == false {
+        If foo > 0 {
+            boolvar = false;
+        };
+    };
+
     If listvar[foo] == false {
         foo2 = 3;
     };
-    Call main2(param);
-    Call main3(param);
+
+    var1, var2 =;
 };
 
-Procedure main2 (param)
-{
-    foo3 = param;
-    foo2 = foo;
-};
-
-Procedure main3 (param)
-{
-    foo3 = param;
-    foo2 = foo;
-};
-
-
-
+##Procedure function (param)
+##{
+##    foo3 = param;
+##    foo2 = foo;
+##};

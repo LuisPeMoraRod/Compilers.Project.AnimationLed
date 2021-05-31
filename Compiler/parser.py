@@ -7,10 +7,8 @@ from lexer import *
 class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
-
         self.hasMainProcedure = False #Helps to know if there is one and only one Main procedure
-
-        self.symbols = []    # Variables declared so far and their types and values
+        self.symbols = []    # Variables declared so far and their types and values        
         self.procedures = [] # Procedures declared so far with their parameter names
 
         #Variables used for procedure call
@@ -68,7 +66,7 @@ class Parser:
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
-            self.procedure() # The whole program made of procedures
+           self.procedure() # The whole program made of procedures
 
         #Checks the pending Main procedure calls (were not checed before)
         for mainCall in self.tempMainCalls:
@@ -136,7 +134,7 @@ class Parser:
     # One of the following statements...
     def statement(self, procedure):
         # Check the first token to see what kind of statement this is.
-  #statement := Call IDENT "(" ")"
+        #statement := Call IDENT "(" ")"
         if self.checkToken(TokenType.Call):
             print("STATEMENT-PROCEDURE-CALL")
             self.nextToken()
@@ -165,55 +163,39 @@ class Parser:
                 self.tempParameterCall =[]
 
         # statement := ident "=" (expression | true | false) ";" 
-        elif self.checkToken(TokenType.IDENT):
-            print("STATEMENT-VAR DEFINITION")
+        elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.EQ:
             self.tempIdent = self.curToken.text
-
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
+            print("STATEMENT-SIMPLE VAR ASSIGNATION")
+            self.assignation(procedure)
+        
+        #statement := IDENT compoundIdent "=" compoundDeclaration ";"
+        #compoundIdent := {"," IDENT compoundIdent}
+        elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.COMA:
+            variables = []
 
-            if self.checkToken(TokenType.true):
-                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
-                    self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
-
-                self.match(TokenType.true)
-                self.tempType = TokenType.BOOLEAN
-
-            elif self.checkToken(TokenType.false):
-                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
-                    self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
-
-                self.match(TokenType.false)
-                self.tempType = TokenType.BOOLEAN
+            self.tempIdent = self.curToken.text
+            self.match(TokenType.IDENT)
+            variables.append(self.tempIdent)
             
-            elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
-                listIdent = self.tempIdent
-                self.match(TokenType.SQRBRACKETLEFT)
-                for i in range(7): #7 elements + COMMA
-                    self.checkLstElmnt()
-                    self.match(TokenType.COMA)
-                self.checkLstElmnt() #last element
-                self.match(TokenType.SQRBRACKETRIGHT)
+            print("STATEMENT-COMPOUND VAR ASSIGNATION")
 
-                self.tempIdent = listIdent
-                self.tempType = TokenType.LIST
+            while not self.checkToken(TokenType.EQ):
+                self.match(TokenType.COMA)
+                self.tempIdent = self.curToken.text
+                self.match(TokenType.IDENT)
+                variables.append(self.tempIdent)
             
-            #elif self.checkToken(TokenType.IDENT):
-                
-            else: # aritmetic expression
-                self.expression()
-                self.tempType = TokenType.NUMBER
-                symbolType = self.getSymbolType(self.tempIdent, procedure) 
-                if symbolType == TokenType.BOOLEAN:
-                    self.abort("Attempting to assign a NUMBER to a BOOLEAN typed variable: " + self.tempIdent)
+            self.match(TokenType.EQ)
 
-                elif symbolType == TokenType.LIST:
-                    self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
-            
-            
-            if not self.symbolExists(self.tempIdent, procedure):
-                print("Adding "+ self.tempIdent)
-                self.addSymbol(self.tempIdent, self.tempType, procedure) #OJO True means that they are all global variables (needs to be changed when Procedures are implemented)
+            self.tempIdent = variables[0]
+            self.assignation(procedure)
+
+            for i in range(1, len(variables)):
+                self.match(TokenType.COMA)
+                self.tempIdent = variables[i]
+                self.assignation(procedure)
 
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
@@ -228,7 +210,6 @@ class Parser:
 
             self.match(TokenType.CURLYBRACKETRIGHT)
 
-        
 
         # This is not a valid statement. Error!
         else:
@@ -365,7 +346,7 @@ class Parser:
             # Error!
             self.abort("Unexpected token at " + self.curToken.text)  
     
-    #squareBrackets ::= "[" ( expression | ":" "," number) "]"
+    #squareBrackets ::= "[" ( expression {":" number} | ":" "," number) "]"
     def squareBrackets(self, identifier):
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             print("SQUARE BRACKETS")
@@ -379,9 +360,18 @@ class Parser:
                     self.match(TokenType.SQRBRACKETRIGHT)
                 else:
                     self.expression()
+                    self.range()
                     self.match(TokenType.SQRBRACKETRIGHT)
             else:
                 self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
+    
+    #Checks if expression inside square brackets refer to a range: listvar[1:4]
+    def range(self):
+        if self.checkToken(TokenType.DOUBLEDOT):
+            print("RANGE")
+            self.nextToken()
+            self.match(TokenType.NUMBER)
+        
     
     #Checks if symbol already exists
     def symbolExists(self, identifier, scope):
@@ -436,3 +426,48 @@ class Parser:
             if procedure[0] == identifier and procedure[1] == paramLenght:
                 return True
         return False
+
+    #Simple variable assignation
+    def assignation(self, procedure):
+        if self.checkToken(TokenType.true): # = true
+            if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
+
+            self.match(TokenType.true)
+            self.tempType = TokenType.BOOLEAN
+
+        elif self.checkToken(TokenType.false): # = false
+            if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
+
+            self.match(TokenType.false)
+            self.tempType = TokenType.BOOLEAN
+        
+        elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
+            listIdent = self.tempIdent
+            self.match(TokenType.SQRBRACKETLEFT)
+            for i in range(7): #7 elements + COMMA
+                self.checkLstElmnt()
+                self.match(TokenType.COMA)
+            self.checkLstElmnt() #last element
+            self.match(TokenType.SQRBRACKETRIGHT)
+
+            self.tempIdent = listIdent
+            self.tempType = TokenType.LIST
+        
+            
+        else: # aritmetic expression
+            self.expression()
+            self.tempType = TokenType.NUMBER
+            symbolType = self.getSymbolType(self.tempIdent, procedure) 
+            if symbolType == TokenType.BOOLEAN:
+                self.abort("Attempting to assign a NUMBER to a BOOLEAN typed variable: " + self.tempIdent)
+
+            elif symbolType == TokenType.LIST:
+                self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
+        
+        
+        if not self.symbolExists(self.tempIdent, procedure):
+            print("Adding "+ self.tempIdent)
+            self.addSymbol(self.tempIdent, self.tempType, procedure)
+
