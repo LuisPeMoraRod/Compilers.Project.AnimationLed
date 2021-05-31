@@ -22,7 +22,7 @@ class Parser:
         #Variables used for logic validations: e.g. check if a variable already exists
         self.tempIdent  = None 
         self.tempType = None
-        self.tempIsGlobal = None
+        self.tempValue = None #Variables values
 
         self.curToken = None
         self.peekToken = None
@@ -115,7 +115,7 @@ class Parser:
 
         # Define parameters as local variables
         for param in self.tempParameters:
-            self.addSymbol(param, None, self.tempProcedure)
+            self.addSymbol(param, None, self.tempProcedure, None)
 
         self.match(TokenType.CURLYBRACKETLEFT)
 
@@ -381,8 +381,8 @@ class Parser:
         return False
     
     #Add new variable to set
-    def addSymbol(self, identifier, dataType, scope):
-        newSymbol = [identifier, dataType, scope]
+    def addSymbol(self, identifier, dataType, scope, value):
+        newSymbol = [identifier, dataType, scope, value]
         self.symbols.append(newSymbol)
 
     #Returns data type of given identifier. If variable hasn't been declared, returns None
@@ -435,6 +435,7 @@ class Parser:
 
             self.match(TokenType.true)
             self.tempType = TokenType.BOOLEAN
+            self.tempValue = True
 
         elif self.checkToken(TokenType.false): # = false
             if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
@@ -442,6 +443,7 @@ class Parser:
 
             self.match(TokenType.false)
             self.tempType = TokenType.BOOLEAN
+            self.tempValue = False
         
         elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
             listIdent = self.tempIdent
@@ -454,6 +456,7 @@ class Parser:
 
             self.tempIdent = listIdent
             self.tempType = TokenType.LIST
+            self.tempValue = 8 #init size of list (could be changed with insert or del built-in functions)
         
             
         else: # aritmetic expression
@@ -465,9 +468,10 @@ class Parser:
 
             elif symbolType == TokenType.LIST:
                 self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
+            self.tempValue = None
         
         
         if not self.symbolExists(self.tempIdent, procedure):
             print("Adding "+ self.tempIdent)
-            self.addSymbol(self.tempIdent, self.tempType, procedure)
+            self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue)
 
