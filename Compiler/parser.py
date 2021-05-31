@@ -448,17 +448,19 @@ class Parser:
         elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
             listIdent = self.tempIdent
             self.match(TokenType.SQRBRACKETLEFT)
-            for i in range(7): #7 elements + COMMA
-                self.checkLstElmnt()
+            self.checkLstElmnt() #first element
+            elements = 1
+            while not self.checkToken(TokenType.SQRBRACKETRIGHT):
                 self.match(TokenType.COMA)
-            self.checkLstElmnt() #last element
+                self.checkLstElmnt()
+                elements += 1
+                
             self.match(TokenType.SQRBRACKETRIGHT)
 
             self.tempIdent = listIdent
             self.tempType = TokenType.LIST
-            self.tempValue = 8 #init size of list (could be changed with insert or del built-in functions)
+            self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
         
-            
         else: # aritmetic expression
             self.expression()
             self.tempType = TokenType.NUMBER
