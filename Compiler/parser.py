@@ -133,7 +133,9 @@ class Parser:
 
     # One of the following statements...
     def statement(self, procedure):
-        # Check the first token to see what kind of statement this is.
+        #Check the first token to see what kind of statement this is.
+
+        #Call procedure parsing
         #statement := Call IDENT "(" ")"
         if self.checkToken(TokenType.Call):
             print("STATEMENT-PROCEDURE-CALL")
@@ -162,6 +164,7 @@ class Parser:
                 self.tempProcedureCall = None
                 self.tempParameterCall =[]
 
+        #Simple variable declaration/assignation
         # statement := ident "=" (expression | true | false) ";" 
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.EQ:
             self.tempIdent = self.curToken.text
@@ -170,6 +173,7 @@ class Parser:
             print("STATEMENT-SIMPLE VAR ASSIGNATION")
             self.assignation(procedure)
         
+        #Compound variable declaration/assignation
         #statement := IDENT compoundIdent "=" compoundDeclaration ";"
         #compoundIdent := {"," IDENT compoundIdent}
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.COMA:
@@ -197,19 +201,18 @@ class Parser:
                 self.tempIdent = variables[i]
                 self.assignation(procedure)
         
-        elif self.checkToken(TokenType.IDENT) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+        #List operations or modifiers
+        elif self.isListIdent(procedure):
             print("STATEMENT-LIST MODIFIER")
-            self.tempIdent = self.curToken.text
-            if self.symbolExists(self.tempIdent, procedure):
-                self.nextToken()
-                is_range = False
-
-                delimiters = self.squareBrackets(self.tempIdent)
-                if isinstance(delimiters, tuple):
-                    is_range = True
-                    print(is_range)
+            is_range = False
+            delimiters = self.squareBrackets(self.tempIdent)
+            if isinstance(delimiters, tuple):
+                is_range = True
+                print(is_range)
+            
+            if self.checkToken(TokenType.EQ): #Validation for List modifiers e.g: listvar[3] = true; listvar[1:3] = [true, false];
+                                            #statement := IDENT squareBrackets "=" ("[" boolean listValues "]" | boolean)
                 self.match(TokenType.EQ)
-
                 if is_range: #range assignation: listvar[1:3] = [true, false]
                     self.match(TokenType.SQRBRACKETLEFT)
                     list_range = delimiters[1] - delimiters[0]
@@ -221,10 +224,19 @@ class Parser:
                 else:
                     self.checkLstElmnt()
 
-            else:
-                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+            elif self.checkToken(TokenType.DOT): #Validation for list operations like: listvar[3].Neg
+                print("DOT")
+                self.match(TokenType.DOT)
+                if self.checkToken(TokenType.Neg) or self.checkToken(TokenType.F) or self.checkToken(TokenType.T):
+                    self.nextToken()
+                else:
+                    self.abort("Unrecognized statement at: " + self.curToken.text)
+                    
 
 
+
+        #Statement if
+        #statement := If comparison "{" {statement} "}" ";"
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
             self.nextToken()
@@ -237,8 +249,8 @@ class Parser:
                 self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
-
-
+        
+        
         # This is not a valid statement. Error!
         else:
             self.abort("Invalid statement at " + self.curToken.text + " (" + self.curToken.kind.name + ")")
@@ -246,6 +258,8 @@ class Parser:
 
         # Newline.
         self.semicolon()
+
+
     def params(self, parameterList):
         print("PARAMETERS")
         while True:
@@ -396,10 +410,12 @@ class Parser:
                         num2 = int(self.curToken.text)
                         if num1 < num2:
                             self.inRange(size, self.tempProcedure)
+                            self.match(TokenType.SQRBRACKETRIGHT)
                             return (num1, num2)
                         else:
                             self.abort("Invalid range")
                     self.match(TokenType.SQRBRACKETRIGHT)
+
 
                 else:
                     self.abort("Invalid range") 
@@ -528,4 +544,17 @@ class Parser:
         if not self.symbolExists(self.tempIdent, procedure):
             print("Adding "+ self.tempIdent)
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue)
+
+    #Checks if token is a list identifier 
+    def isListIdent(self, procedure):
+        if self.checkToken(TokenType.IDENT) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+            self.tempIdent = self.curToken.text
+            if self.symbolExists(self.tempIdent, procedure):
+                self.nextToken()
+                return True
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+        else:
+            return False
+
 
