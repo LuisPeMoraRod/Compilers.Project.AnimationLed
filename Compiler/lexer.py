@@ -259,6 +259,25 @@ class TokenType(enum.Enum):
     true = 105
     false = 106
     Call = 107
+    Range = 108
+    Insert = 109
+    Del = 110
+    Len = 111
+    Neg = 112
+    T = 113
+    F = 114
+    Blink = 115
+    Seg = 116
+    Mil = 117
+    Min = 118
+    Delay = 119
+    PrintLed = 120
+    PrintLedX = 121
+    C = 122
+    M = 123
+    ShapeF = 124
+    ShapeC = 125
+
     # Operators.
     EQ = 201
     PLUS = 202 
