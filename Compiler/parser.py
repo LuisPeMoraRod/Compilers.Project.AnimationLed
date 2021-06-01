@@ -196,6 +196,9 @@ class Parser:
                 self.match(TokenType.COMA)
                 self.tempIdent = variables[i]
                 self.assignation(procedure)
+        
+        #elif self.checkToken(TokenType.IDENT) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+
 
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
@@ -355,23 +358,41 @@ class Parser:
                 if self.checkToken(TokenType.DOUBLEDOT):
                     self.match(TokenType.DOUBLEDOT)
                     self.match(TokenType.COMA)
-                    self.expression()
-                    #self.match(TokenType.NUMBER) # OJO missing validation for range overload (unexistent column)
+                    #self.expression() # OJO missing validation for range overload (unexistent column)
+                    size = self.getSymbolValue(identifier)
+                    self.inRange(size, self.tempProcedure) 
                     self.match(TokenType.SQRBRACKETRIGHT)
+
+                elif self.checkToken(TokenType.NUMBER):
+                    size = self.getSymbolValue(identifier)
+                    num1 = int(self.curToken.text)
+                    self.inRange(size, self.tempProcedure)
+                    if self.checkToken(TokenType.DOUBLEDOT):
+                        self.match(TokenType.DOUBLEDOT)
+                        num2 = int(self.curToken.text)
+                        if num1 < num2:
+                            self.inRange(size, self.tempProcedure)
+                        else:
+                            self.abort("Invalid range")
+                    self.match(TokenType.SQRBRACKETRIGHT)
+
                 else:
-                    self.expression()
-                    self.range()
-                    self.match(TokenType.SQRBRACKETRIGHT)
+                    self.abort("Invalid range") 
+
             else:
                 self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
     
-    #Checks if expression inside square brackets refer to a range: listvar[1:4]
-    def range(self):
-        if self.checkToken(TokenType.DOUBLEDOT):
-            print("RANGE")
-            self.nextToken()
-            self.match(TokenType.NUMBER)
-        
+    #Checks if delimiters inside brackets are in valid range
+    def inRange(self, size, procedure):
+        if self.checkToken(TokenType.NUMBER):
+            number = int(self.curToken.text)
+            if 0 <= number <= size:
+                self.match(TokenType.NUMBER)
+                return True
+            else:
+                self.abort("Delimiter: " + self.curToken.text +" out of range")
+        else:
+            self.abort("Expected NUMBER, got" + self.curToken.kind.name)
     
     #Checks if symbol already exists
     def symbolExists(self, identifier, scope):
@@ -391,6 +412,12 @@ class Parser:
             if symbol[0] == identifier \
                 and (symbol[2] == scope or symbol[2] == 'Main'):
                 return symbol[1]
+        return None
+    
+    def getSymbolValue(self, identifier):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                return symbol[3]
         return None
 
     #Add new procedure
