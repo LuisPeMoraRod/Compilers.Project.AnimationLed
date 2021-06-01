@@ -197,7 +197,32 @@ class Parser:
                 self.tempIdent = variables[i]
                 self.assignation(procedure)
         
-        #elif self.checkToken(TokenType.IDENT) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+        elif self.checkToken(TokenType.IDENT) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+            print("STATEMENT-LIST MODIFIER")
+            self.tempIdent = self.curToken.text
+            if self.symbolExists(self.tempIdent, procedure):
+                self.nextToken()
+                is_range = False
+
+                delimiters = self.squareBrackets(self.tempIdent)
+                if isinstance(delimiters, tuple):
+                    is_range = True
+                    print(is_range)
+                self.match(TokenType.EQ)
+
+                if is_range: #range assignation: listvar[1:3] = [true, false]
+                    self.match(TokenType.SQRBRACKETLEFT)
+                    list_range = delimiters[1] - delimiters[0]
+                    self.checkLstElmnt() #first element
+                    for i in range(list_range - 1):
+                        self.match(TokenType.COMA)
+                        self.checkLstElmnt()
+                    self.match(TokenType.SQRBRACKETRIGHT)
+                else:
+                    self.checkLstElmnt()
+
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
 
 
         elif self.checkToken(TokenType.If):
@@ -353,17 +378,16 @@ class Parser:
     def squareBrackets(self, identifier):
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             print("SQUARE BRACKETS")
-            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST:
+            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: #column: listvar[:,5]
                 self.nextToken()
                 if self.checkToken(TokenType.DOUBLEDOT):
                     self.match(TokenType.DOUBLEDOT)
                     self.match(TokenType.COMA)
-                    #self.expression() # OJO missing validation for range overload (unexistent column)
                     size = self.getSymbolValue(identifier)
                     self.inRange(size, self.tempProcedure) 
                     self.match(TokenType.SQRBRACKETRIGHT)
 
-                elif self.checkToken(TokenType.NUMBER):
+                elif self.checkToken(TokenType.NUMBER): #range: listvar[1:6] or simple id listvar[0]
                     size = self.getSymbolValue(identifier)
                     num1 = int(self.curToken.text)
                     self.inRange(size, self.tempProcedure)
@@ -372,6 +396,7 @@ class Parser:
                         num2 = int(self.curToken.text)
                         if num1 < num2:
                             self.inRange(size, self.tempProcedure)
+                            return (num1, num2)
                         else:
                             self.abort("Invalid range")
                     self.match(TokenType.SQRBRACKETRIGHT)
@@ -390,7 +415,7 @@ class Parser:
                 self.match(TokenType.NUMBER)
                 return True
             else:
-                self.abort("Delimiter: " + self.curToken.text +" out of range")
+                self.abort("Index: " + self.curToken.text +" out of range")
         else:
             self.abort("Expected NUMBER, got" + self.curToken.kind.name)
     
