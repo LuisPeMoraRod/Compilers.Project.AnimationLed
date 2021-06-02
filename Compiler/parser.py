@@ -202,8 +202,9 @@ class Parser:
                 self.assignation(procedure)
         
         #List operations or modifiers
-        elif self.isListIdent(procedure):
+        elif self.isListIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
             print("STATEMENT-LIST MODIFIER")
+            self.nextToken()
             is_range = False
             delimiters = self.squareBrackets(self.tempIdent)
             if isinstance(delimiters, tuple):
@@ -224,16 +225,29 @@ class Parser:
                 else:
                     self.checkLstElmnt()
 
-            elif self.checkToken(TokenType.DOT): #Validation for list operations like: listvar[3].Neg
+            elif self.checkToken(TokenType.DOT): #Validation for list operations: listvar[0].Neg; listvar[0].T; listvar[0].F;
+                                                #statement := IDENT squareBrackets "." ("Neg" | "T" | "F")
                 print("DOT")
                 self.match(TokenType.DOT)
                 if self.checkToken(TokenType.Neg) or self.checkToken(TokenType.F) or self.checkToken(TokenType.T):
+                    print(self.curToken.text)
                     self.nextToken()
                 else:
                     self.abort("Unrecognized statement at: " + self.curToken.text)
-                    
-
-
+        
+        #Insert or delete elements from list
+        elif self.isListIdent(procedure) and self.checkPeek(TokenType.DOT):
+            print("INSERT")
+            self.nextToken()
+            self.match(TokenType.DOT)
+            if self.checkToken(TokenType.Insert): #listvar.Insert(5,true);
+                self.match(TokenType.Insert)
+                self.match(TokenType.ROUNDBRACKETLEFT)
+                size = self.getSymbolValue(self.tempIdent)
+                self.inRange(size, procedure)
+                self.match(TokenType.COMA)
+                self.checkLstElmnt()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
 
         #Statement if
         #statement := If comparison "{" {statement} "}" ";"
@@ -547,11 +561,13 @@ class Parser:
 
     #Checks if token is a list identifier 
     def isListIdent(self, procedure):
-        if self.checkToken(TokenType.IDENT) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+        if self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
             if self.symbolExists(self.tempIdent, procedure):
-                self.nextToken()
-                return True
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.LIST:
+                    return True
+                else:
+                    self.abort("Attempting to access an NON LIST type variable")
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
