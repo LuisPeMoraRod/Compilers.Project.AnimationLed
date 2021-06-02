@@ -120,21 +120,10 @@ class Lexer:
                 token = Token(lastChar + self.curChar, TokenType.NOTEQ)
             else:
                 self.abort("Expected !=, got !" + self.peek())
-
+        
         elif self.curChar == '\"':
-            # Get characters between quotations.
-            self.nextChar()
-            startPos = self.curPos
-
-            while self.curChar != '\"':
-                # Don't allow special characters in the string. No escape characters, newlines, tabs, or %.
-                # We will be using C's printf on this string.
-                if self.curChar == '\r' or self.curChar == '\n' or self.curChar == '\t' or self.curChar == '\\' or self.curChar == '%':
-                    self.abort("Illegal character in string.")
-                self.nextChar()
-
-            tokText = self.source[startPos : self.curPos] # Get the substring.
-            token = Token(tokText, TokenType.STRING)
+            # Get the apostrophe '"'
+            token = Token(self.curChar, TokenType.APOST)
 
         elif self.curChar == '{':
             # Get the curly bracket '{'
@@ -251,6 +240,7 @@ class TokenType(enum.Enum):
     DOUBLEDOT = 7
     BOOLEAN = 8
     LIST = 9
+
     # Keywords.
     For = 101
     In = 102
@@ -293,6 +283,7 @@ class TokenType(enum.Enum):
     SLASHD = 212
     ASTERISKD = 213 
     MODULE = 214
+
     # Other symbols
     CURLYBRACKETLEFT = 301
     CURLYBRACKETRIGHT = 302
@@ -300,3 +291,4 @@ class TokenType(enum.Enum):
     ROUNDBRACKETRIGHT = 304
     SQRBRACKETLEFT = 305
     SQRBRACKETRIGHT = 306
+    APOST = 307

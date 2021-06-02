@@ -10,5 +10,11 @@ Procedure Main ()
     var3[1].T;
     var3[1].F;
 
-    var2 = Range(4, true);
+    var2 = false;
+
+    If var1 > Len(var3){
+        var3[2:5].Neg;
+    };
+
+    Blink(var3, var1, "Seg", var2);
 };

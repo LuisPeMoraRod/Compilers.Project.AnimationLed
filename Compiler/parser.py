@@ -272,6 +272,27 @@ class Parser:
                 self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
+
+        
+        elif self.checkToken(TokenType.Blink):
+            print("STATEMENT - BLINK")
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            if self.isListIdent(procedure):
+                self.nextToken()
+                self.squareBrackets(self.tempIdent)
+                self.match(TokenType.COMA)
+                self.matchNumber(procedure)
+                self.match(TokenType.COMA)
+                self.match(TokenType.APOST)
+                if self.checkToken(TokenType.Mil) or self.checkToken(TokenType.Seg) or self.checkToken(TokenType.Min):
+                    self.nextToken()
+                    self.match(TokenType.APOST)
+                    self.match(TokenType.COMA)
+                    self.checkLstElmnt()
+                    self.match(TokenType.ROUNDBRACKETRIGHT)
+                else:
+                    self.abort("Invalid time unit: "+self.curToken.text)
         
         
         # This is not a valid statement. Error!
@@ -618,5 +639,23 @@ class Parser:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
             return False
+
+    #Checks if token matches with a NUMBER type (could be a primitive or a variable)
+    def matchNumber(self, procedure):
+        if self.checkToken(TokenType.NUMBER):
+            self.nextToken()
+        elif self.checkToken(TokenType.IDENT):
+            self.tempIdent = self.curToken.text
+            if self.symbolExists(self.tempIdent, procedure):
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                    self.nextToken()
+                else:
+                    self.abort("Attempting to access an NON NUMBER type variable")
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+        else:
+            self.match(TokenType.NUMBER)
+            
+
 
 
