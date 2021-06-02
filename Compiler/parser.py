@@ -237,16 +237,24 @@ class Parser:
         
         #Insert or delete elements from list
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.DOT):
-            print("INSERT")
             self.nextToken()
             self.match(TokenType.DOT)
             if self.checkToken(TokenType.Insert): #listvar.Insert(5,true);
+                print("STATEMENT - INSERT")
                 self.match(TokenType.Insert)
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 size = self.getSymbolValue(self.tempIdent)
                 self.inRange(size, procedure)
                 self.match(TokenType.COMA)
                 self.checkLstElmnt()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+                
+            elif self.checkToken(TokenType.Del):
+                print("STATEMENT - DELETE")
+                self.match(TokenType.Del)
+                self.match(TokenType.ROUNDBRACKETLEFT)
+                size = self.getSymbolValue(self.tempIdent) - 1
+                self.inRange(size, procedure)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
 
         #Statement if
@@ -542,6 +550,25 @@ class Parser:
             self.tempIdent = listIdent
             self.tempType = TokenType.LIST
             self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
+        
+        elif self.checkToken(TokenType.Range):
+            self.match(TokenType.Range)
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            if self.checkToken(TokenType.NUMBER):
+                listIdent = self.tempIdent
+                size = int(self.curToken.text)
+                self.nextToken()
+                self.match(TokenType.COMA)
+                self.checkLstElmnt()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+
+                self.tempIdent = listIdent
+                self.tempType = TokenType.LIST
+                self.tempValue = size
+
+            else:
+                self.match(TokenType.NUMBER)
+
         
         else: # aritmetic expression
             self.expression()

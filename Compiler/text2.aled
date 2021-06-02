@@ -8,5 +8,5 @@ Procedure Main ()
     var3[1].Neg;
     var3[1].T;
     var3[1].F;
-    var3.Insert(0,var2);
+    var3.Del(6);
 };
