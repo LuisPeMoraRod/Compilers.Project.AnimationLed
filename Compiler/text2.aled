@@ -17,4 +17,5 @@ Procedure Main ()
     };
 
     Blink(var3, var1, "Seg", var2);
+    Delay(3, "Min");
 };

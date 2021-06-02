@@ -273,7 +273,7 @@ class Parser:
 
             self.match(TokenType.CURLYBRACKETRIGHT)
 
-        
+        #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
         elif self.checkToken(TokenType.Blink):
             print("STATEMENT - BLINK")
             self.nextToken()
@@ -293,6 +293,23 @@ class Parser:
                     self.match(TokenType.ROUNDBRACKETRIGHT)
                 else:
                     self.abort("Invalid time unit: "+self.curToken.text)
+        
+        #Delay statement: Delay(5, "Mil")
+        elif self.checkToken(TokenType.Delay):
+            print("STATEMENT - DELAY")
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            self.matchNumber(procedure)
+            self.match(TokenType.COMA)
+            self.match(TokenType.APOST)
+            if self.checkToken(TokenType.Mil) or self.checkToken(TokenType.Seg) or self.checkToken(TokenType.Min):
+                self.nextToken()
+                self.match(TokenType.APOST)
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+            else:
+                self.abort("Invalid time unit: "+self.curToken.text)
+
+
         
         
         # This is not a valid statement. Error!
