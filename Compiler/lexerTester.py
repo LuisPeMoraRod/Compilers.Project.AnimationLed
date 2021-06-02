@@ -1,5 +1,5 @@
 from  lexer import Lexer
-from lexer import TokenType
+from tokenType import TokenType
 
 def main():
     input = "foo = 5;"
