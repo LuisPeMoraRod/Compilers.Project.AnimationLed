@@ -40,9 +40,9 @@ uint8_t readCapacitivePin(String data) {
   //  http://playground.arduino.cc/Code/CapacitiveSensor
   //
   // Variables used to translate from Arduino to AVR pin naming
-  volatile unsigned int* port;
-  volatile unsigned int* ddr;
-  volatile unsigned int* pin;
+  volatile uint8_t* port;
+  volatile uint8_t* ddr;
+  volatile uint8_t* pin;
   // Here we translate the input pin number from
   //  Arduino pin number to the AVR PORT, PIN, DDR,
   //  and which bit of those registers we care about.
@@ -304,7 +304,6 @@ void SV_write_ms(String data) {
 
 void sizeEEPROM() {
     //Serial.println(E2END + 1);
-    Serial.println("E2END + 1");
 }
 
 void EEPROMHandler(int mode, String data) {
@@ -319,15 +318,17 @@ void EEPROMHandler(int mode, String data) {
 
 void SerialParser(void) {
   char readChar[64];
-  Serial.readBytesUntil(33,readChar,64);
+  //Serial.readBytesUntil(33,readChar,64);
+  Serial.readBytes(readChar,64);
   String read_ = String(readChar);
-  //Serial.println(readChar);
+  //Serial.println(read_);
   int idx1 = read_.indexOf('%');
   int idx2 = read_.indexOf('$');
   // separate command from associated data
   String cmd = read_.substring(1,idx1);
   String data = read_.substring(idx1+1,idx2);
-  
+
+  Serial.println(read_);
   // determine command sent
   if (cmd == "dw") {
       DigitalHandler(1, data);   

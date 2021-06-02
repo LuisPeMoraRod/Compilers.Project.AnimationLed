@@ -1,0 +1,20 @@
+##listvar = [true, false, true, false, boolvar, false, true, true];
+Procedure Main ()
+{
+    ##Esto es un comentario afuera
+ ##cdcdc
+    foo=1; ##cdcdc
+    boolvar = true;
+    listvar = [true, false, true, false, boolvar, false, true, true];
+    If listvar[5:8] == false {
+        If foo > 0 {
+            boolvar = false;
+        };
+    };
+};
+
+##Procedure function (param)
+##{
+##    foo3 = param;
+##    foo2 = foo;
+##};

@@ -1,0 +1,23 @@
+Procedure Main ()
+{
+    var1, var2, var3 = 1 , true , [true, false, true, false, true, false];
+
+    var3[1] = false;
+    var3[1:4].Neg;
+    var3[1:4].T;
+    var3[1:4].F;
+    var3[1].Neg;
+    var3[1].T;
+    var3[1].F;
+
+    var2 = false;
+
+    If var1 > Len(var3){
+        var3[2:5].Neg;
+    };
+
+    Blink(var3, var1, "Seg", var2);
+    Delay(3, "Min");
+    PrintLed(3, var1, false);
+    PrintLedX("R", 0, var3);
+};

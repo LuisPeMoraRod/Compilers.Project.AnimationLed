@@ -1,0 +1,18 @@
+program := {procedure}
+
+procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
+
+statement := IDENT "=" expression ";"
+    | If comparison "{" {statement} "}"
+    | IDENT "(" ")"
+
+params ::= {IDENT ","} {IDENT}
+comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
+expression ::= term {( "-" | "+" ) term}
+term ::= unary {( "/" | "*" ) unary}
+unary ::= ["+" | "-"] module
+module := exp {("%" exp)}
+exp := primary {"**" }
+primary ::= number | ident{squareBrackets} | "(" expression ")"
+
+squareBrackets := "[" (expression | ":" "," )
