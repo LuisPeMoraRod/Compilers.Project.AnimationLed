@@ -248,7 +248,7 @@ class Parser:
                 self.match(TokenType.COMA)
                 self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
-                
+
             elif self.checkToken(TokenType.Del):
                 print("STATEMENT - DELETE")
                 self.match(TokenType.Del)
@@ -262,6 +262,7 @@ class Parser:
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
             self.nextToken()
+            self.tempProcedure = procedure
             self.comparison()
 
             self.match(TokenType.CURLYBRACKETLEFT)
@@ -405,6 +406,17 @@ class Parser:
             self.expression()
             print("PRIMARY ( \'" + self.curToken.text + "\' )")
             self.match(TokenType.ROUNDBRACKETRIGHT)
+        
+        elif self.checkToken(TokenType.Len): #Len statement
+            print("STATEMENT - Len")
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            if self.isListIdent(self.tempProcedure):
+                self.nextToken()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+            else:
+                self.match(TokenType.IDENT)
+            
 
         else:
             # Error!
@@ -519,23 +531,28 @@ class Parser:
 
     #Simple variable assignation
     def assignation(self, procedure):
+        curSymbol = self.getSymbolType(self.tempIdent, procedure)
         if self.checkToken(TokenType.true): # = true
-            if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
-                self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
+            if curSymbol != TokenType.BOOLEAN and curSymbol != None:
+                self.abort("Attempting to assign a BOOLEAN to a " + curSymbol.name + " typed variable: " + self.tempIdent)
 
             self.match(TokenType.true)
             self.tempType = TokenType.BOOLEAN
             self.tempValue = True
 
         elif self.checkToken(TokenType.false): # = false
-            if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
-                self.abort("Attempting to assign a BOOLEAN to a NUMBER typed variable: " + self.tempIdent)
+            if curSymbol != TokenType.BOOLEAN and curSymbol != None:
+                self.abort("Attempting to assign a BOOLEAN to a " + curSymbol.name + " typed variable: " + self.tempIdent)
 
             self.match(TokenType.false)
             self.tempType = TokenType.BOOLEAN
             self.tempValue = False
         
         elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
+
+            if curSymbol != TokenType.LIST and curSymbol != None:
+                self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+
             listIdent = self.tempIdent
             self.match(TokenType.SQRBRACKETLEFT)
             self.checkLstElmnt() #first element
@@ -552,6 +569,8 @@ class Parser:
             self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
         
         elif self.checkToken(TokenType.Range):
+            if curSymbol != TokenType.LIST and curSymbol != None:
+                self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
             self.match(TokenType.Range)
             self.match(TokenType.ROUNDBRACKETLEFT)
             if self.checkToken(TokenType.NUMBER):
@@ -571,19 +590,19 @@ class Parser:
 
         
         else: # aritmetic expression
+            if curSymbol != TokenType.NUMBER and curSymbol != None:
+                self.abort("Attempting to assign a NUMBER to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+
+            ident = self.tempIdent
+            self.tempProcedure = procedure
             self.expression()
             self.tempType = TokenType.NUMBER
-            symbolType = self.getSymbolType(self.tempIdent, procedure) 
-            if symbolType == TokenType.BOOLEAN:
-                self.abort("Attempting to assign a NUMBER to a BOOLEAN typed variable: " + self.tempIdent)
-
-            elif symbolType == TokenType.LIST:
-                self.abort("Attempting to assign a NUMBER to a LIST typed variable: " + self.tempIdent)
+            self.tempIdent = ident
             self.tempValue = None
         
         
         if not self.symbolExists(self.tempIdent, procedure):
-            print("Adding "+ self.tempIdent)
+            print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue)
 
     #Checks if token is a list identifier 
