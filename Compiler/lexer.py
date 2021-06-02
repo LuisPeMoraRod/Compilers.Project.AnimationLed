@@ -240,6 +240,7 @@ class TokenType(enum.Enum):
     DOUBLEDOT = 7
     BOOLEAN = 8
     LIST = 9
+    MATRIX = 10
 
     # Keywords.
     For = 101
@@ -264,9 +265,10 @@ class TokenType(enum.Enum):
     PrintLed = 120
     PrintLedX = 121
     C = 122
-    M = 123
-    ShapeF = 124
-    ShapeC = 125
+    R = 123
+    M = 124
+    ShapeF = 125
+    ShapeC = 126
 
     # Operators.
     EQ = 201

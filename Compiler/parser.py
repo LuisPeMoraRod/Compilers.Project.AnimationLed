@@ -309,7 +309,7 @@ class Parser:
             else:
                 self.abort("Invalid time unit: "+self.curToken.text)
 
-        #Printled statement
+        #PrintLed statement
         elif self.checkToken(TokenType.PrintLed):
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
@@ -320,8 +320,33 @@ class Parser:
             self.checkLstElmnt()
             self.match(TokenType.ROUNDBRACKETRIGHT)
 
+        #PrintLedX statement
+        elif self.checkToken(TokenType.PrintLedX):
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            self.match(TokenType.APOST)
+            if self.checkToken(TokenType.R) or self.checkToken(TokenType.C) or self.checkToken(TokenType.M):
+                objType = self.curToken.text
+                self.nextToken()
+                self.match(TokenType.APOST)
+                self.match(TokenType.COMA)
+                self.matchColRow(procedure)
+                self.match(TokenType.COMA)
+                if objType == "M":
+                    if self.isMatrixIdent(procedure):
+                        self.nextToken()
+                    else:
+                        self.match(TokenType.IDENT)
+                else:
+                    if self.isListIdent(procedure):
+                        self.nextToken()
+                    else:
+                        self.match(TokenType.IDENT)
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+            
+            else:
+                self.abort("Invalid object type: " + self.curToken.text)
 
-        
         
         # This is not a valid statement. Error!
         else:
@@ -663,6 +688,20 @@ class Parser:
                     return True
                 else:
                     self.abort("Attempting to access an NON LIST type variable")
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+        else:
+            return False
+
+        #Checks if token is a list identifier 
+    def isMatrixIdent(self, procedure):
+        if self.checkToken(TokenType.IDENT):
+            self.tempIdent = self.curToken.text
+            if self.symbolExists(self.tempIdent, procedure):
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.MATRIX:
+                    return True
+                else:
+                    self.abort("Attempting to access an NON MATRIX type variable")
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
