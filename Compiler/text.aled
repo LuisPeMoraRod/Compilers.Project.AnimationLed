@@ -13,8 +13,8 @@ Procedure Main ()
     };
 };
 
-##Procedure function (param)
-##{
-##    foo3 = param;
-##    foo2 = foo;
-##};
+Procedure function (param)
+{
+    foo3 = param;
+    foo2 = foo;
+};

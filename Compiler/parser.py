@@ -166,12 +166,16 @@ class Parser:
 
         #Simple variable declaration/assignation
         # statement := ident "=" (expression | true | false) ";" 
+        #Var =  
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.EQ:
             self.tempIdent = self.curToken.text
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
             print("STATEMENT-SIMPLE VAR ASSIGNATION")
-            self.assignation(procedure)
+            if self.sintaxVar:
+                self.assignation(procedure)
+            else:
+                self.abort("Invalid identifier: "+self.tempIdent)
         
         #Compound variable declaration/assignation
         #statement := IDENT compoundIdent "=" compoundDeclaration ";"
@@ -311,6 +315,7 @@ class Parser:
 
         #PrintLed statement
         elif self.checkToken(TokenType.PrintLed):
+            print("STATEMENT - PrintLed")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.matchColRow(procedure)
@@ -322,6 +327,7 @@ class Parser:
 
         #PrintLedX statement
         elif self.checkToken(TokenType.PrintLedX):
+            print("STATEMENT - PrintLedX")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.match(TokenType.APOST)
@@ -742,6 +748,9 @@ class Parser:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
             self.match(TokenType.NUMBER)
+
+    def sintaxVar(self):
+        pass
             
 
 
