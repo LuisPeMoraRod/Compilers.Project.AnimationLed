@@ -309,6 +309,17 @@ class Parser:
             else:
                 self.abort("Invalid time unit: "+self.curToken.text)
 
+        #Printled statement
+        elif self.checkToken(TokenType.PrintLed):
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            self.matchColRow(procedure)
+            self.match(TokenType.COMA)
+            self.matchColRow(procedure)
+            self.match(TokenType.COMA)
+            self.checkLstElmnt()
+            self.match(TokenType.ROUNDBRACKETRIGHT)
+
 
         
         
@@ -661,6 +672,26 @@ class Parser:
     def matchNumber(self, procedure):
         if self.checkToken(TokenType.NUMBER):
             self.nextToken()
+        elif self.checkToken(TokenType.IDENT):
+            self.tempIdent = self.curToken.text
+            if self.symbolExists(self.tempIdent, procedure):
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                    self.nextToken()
+                else:
+                    self.abort("Attempting to access an NON NUMBER type variable")
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+        else:
+            self.match(TokenType.NUMBER)
+
+    #Checks if index is valid for 8x8 LEDs matrix
+    def matchColRow(self, procedure):
+        if self.checkToken(TokenType.NUMBER):
+            value = int(self.curToken.text)
+            if 0 <= value <= 7:
+                self.nextToken()
+            else:
+                self.abort("Index: " + self.curToken.text +" out of range")
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
             if self.symbolExists(self.tempIdent, procedure):
