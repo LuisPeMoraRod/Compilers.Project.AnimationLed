@@ -21,4 +21,6 @@ Procedure Main ()
     PrintLed(3, 2, false);
 
     PrintLedX("R", 0, var3);
+
+    Variable2 = 2;
 };

@@ -1,4 +1,5 @@
 import sys
+#from typing import type_check_only
 from lexer import *
 
 # Parser object keeps track of current token and checks if the code matches the grammar.
@@ -172,7 +173,7 @@ class Parser:
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
             print("STATEMENT-SIMPLE VAR ASSIGNATION")
-            if self.sintaxVar:
+            if self.sintaxVar(self.tempIdent):
                 self.assignation(procedure)
             else:
                 self.abort("Invalid identifier: "+self.tempIdent)
@@ -193,10 +194,12 @@ class Parser:
                 self.match(TokenType.COMA)
                 self.tempIdent = self.curToken.text
                 self.match(TokenType.IDENT)
-                variables.append(self.tempIdent)
+                if self.sintaxVar(self.tempIdent):
+                    self.assignation(procedure)
+                else:
+                    self.abort("Invalid identifier: " + self.tempIdent)
             
             self.match(TokenType.EQ)
-
             self.tempIdent = variables[0]
             self.assignation(procedure)
 
@@ -699,7 +702,7 @@ class Parser:
         else:
             return False
 
-        #Checks if token is a list identifier 
+        #Checks if token is a matrix identifier 
     def isMatrixIdent(self, procedure):
         if self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
@@ -749,9 +752,14 @@ class Parser:
         else:
             self.match(TokenType.NUMBER)
 
-    def sintaxVar(self):
-        pass
-            
-
-
-
+    def sintaxVar(self, tokenText):
+        if len(tokenText) <= 10 and tokenText[0].islower():
+            i = 1
+            while i<len(tokenText):
+                if tokenText[i].isalpha() or tokenText[i].isdigit() or tokenText[i] == "@" or tokenText[i] == "_" or tokenText[i] == "?":
+                    i = i+1
+                else:
+                    return False
+            return True
+        else:
+            return False     
