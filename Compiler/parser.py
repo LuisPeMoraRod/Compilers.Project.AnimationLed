@@ -201,12 +201,18 @@ class Parser:
             
             self.match(TokenType.EQ)
             self.tempIdent = variables[0]
-            self.assignation(procedure)
+            if self.sintaxVar(self.tempIdent):
+                self.assignation(procedure)
+            else:
+                self.abort("Invalid identifier: "+self.tempIdent)
 
             for i in range(1, len(variables)):
                 self.match(TokenType.COMA)
                 self.tempIdent = variables[i]
-                self.assignation(procedure)
+                if self.sintaxVar(self.tempIdent):
+                    self.assignation(procedure)
+                else:
+                    self.abort("Invalid identifier: "+self.tempIdent)
         
         #List operations or modifiers
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
@@ -279,6 +285,52 @@ class Parser:
                 self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
+        
+        #Statement for
+        #Statement := For variable "In" iterable "Step" num "{" {statement} "}" ";"
+        elif self.checkToken(TokenType.For):
+            print("STATEMENT-FOR")
+            self.nextToken()
+
+            if self.checkToken(TokenType.IDENT):
+                self.tempIdent = self.curToken.text
+                if self.sintaxVar(self.tempIdent):
+                    self.nextToken()
+                    self.match(TokenType.In)
+
+                    #Checks if the iterable is a list
+                    if self.isListIdent(procedure):
+                        self.nextToken()
+                        if self.checkToken(TokenType.SQRBRACKETLEFT):
+                            self.nextToken()
+                            self.match(TokenType.NUMBER)
+                            self.match(TokenType.DOUBLEDOT)
+                            self.match(TokenType.NUMBER)
+                            self.match(TokenType.SQRBRACKETRIGHT)
+
+                    #Checks if the iterable is a number 
+                    elif self.checkToken(TokenType.NUMBER):
+                        self.nextToken()
+                    else:
+                        self.abort("Invalid iterable: " + self.curToken.text)
+
+                    if self.checkToken(TokenType.Step):
+                        self.nextToken()
+                        self.match(TokenType.NUMBER)
+                        
+                else:
+                    self.abort("Invalid variable name: "+ self.tempIdent)
+            else:
+                self.abort("Invalid statement: " + self.tempIdent)
+            
+            self.match(TokenType.CURLYBRACKETLEFT)
+
+            # Zero or more statements in the body.
+            while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+                self.statement(procedure)
+
+            self.match(TokenType.CURLYBRACKETRIGHT)
+
 
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
         elif self.checkToken(TokenType.Blink):

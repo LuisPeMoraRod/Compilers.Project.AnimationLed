@@ -1,0 +1,8 @@
+Procedure Main ()
+{
+    var1 = 5;
+
+    For i In 5 Step 3{
+        var1 = 2;
+    };
+};

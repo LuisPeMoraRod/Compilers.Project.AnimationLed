@@ -7,6 +7,7 @@ class Lexer:
         self.curChar = ''   # Current character in the string.
         self.curPos = -1    # Current position in the string.
         self.curLine = 1    # Current line in the code (for error handling)
+        self.specialCharacters = "ºª\!|#$%&/?'¿¡`^*+¨´-_.:,;<>"
         self.nextChar()
 
     # Process the next character.
@@ -187,7 +188,7 @@ class Lexer:
             # Leading character is a letter, so this must be an identifier or a keyword.
             # Get all consecutive alpha numeric characters.
             startPos = self.curPos
-            while self.peek().isalnum():
+            while self.peek().isalnum() or any(c in self.specialCharacters for c in self.peek()):
                 self.nextChar()
 
             # Check if the token is in the list of keywords.
@@ -269,6 +270,7 @@ class TokenType(enum.Enum):
     M = 124
     ShapeF = 125
     ShapeC = 126
+    Step = 127
 
     # Operators.
     EQ = 201
