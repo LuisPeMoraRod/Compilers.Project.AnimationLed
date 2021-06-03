@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>AutomationLED IDE</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QFrame" name="frame">
@@ -92,9 +92,9 @@
    <widget class="QTextBrowser" name="textBrowser">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>511</y>
-      <width>841</width>
+      <x>0</x>
+      <y>510</y>
+      <width>1031</width>
       <height>181</height>
      </rect>
     </property>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ide.ui'
+# Form implementation generated from reading ui file '/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/ide.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -51,13 +51,3 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Open"))
         self.pushButton_2.setText(_translate("MainWindow", "Run"))
         self.pushButton_3.setText(_translate("MainWindow", "Compile"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())

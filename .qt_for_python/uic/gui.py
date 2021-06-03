@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui.ui'
+# Form implementation generated from reading ui file '/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -38,7 +38,7 @@ class Ui_MainWindow(object):
         self.textEdit.setGeometry(QtCore.QRect(180, 30, 841, 481))
         self.textEdit.setObjectName("textEdit")
         self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
-        self.textBrowser.setGeometry(QtCore.QRect(180, 511, 841, 181))
+        self.textBrowser.setGeometry(QtCore.QRect(0, 510, 1031, 181))
         self.textBrowser.setObjectName("textBrowser")
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -47,17 +47,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "AutomationLED IDE"))
         self.pushButton.setText(_translate("MainWindow", "Open"))
         self.pushButton_2.setText(_translate("MainWindow", "Run"))
         self.pushButton_3.setText(_translate("MainWindow", "Compile"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
