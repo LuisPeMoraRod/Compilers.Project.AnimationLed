@@ -22,5 +22,5 @@ Procedure Main ()
 
     PrintLedX("R", 0, var3);
 
-    Variable2 = 2;
+    variable2 = 2;
 };

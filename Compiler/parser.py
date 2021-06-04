@@ -181,12 +181,20 @@ class Parser:
         #Compound variable declaration/assignation
         #statement := IDENT compoundIdent "=" compoundDeclaration ";"
         #compoundIdent := {"," IDENT compoundIdent}
+         #Compound variable declaration/assignation
+        #statement := IDENT compoundIdent "=" compoundDeclaration ";"
+        #compoundIdent := {"," IDENT compoundIdent}
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.COMA:
             variables = []
 
             self.tempIdent = self.curToken.text
             self.match(TokenType.IDENT)
-            variables.append(self.tempIdent)
+
+            if self.sintaxVar(self.tempIdent):
+                variables.append(self.tempIdent)
+            else:
+                self.abort("Invalid identifier: "+self.tempIdent)
+            
             
             print("STATEMENT-COMPOUND VAR ASSIGNATION")
 
@@ -195,24 +203,19 @@ class Parser:
                 self.tempIdent = self.curToken.text
                 self.match(TokenType.IDENT)
                 if self.sintaxVar(self.tempIdent):
-                    self.assignation(procedure)
+                    variables.append(self.tempIdent)
                 else:
-                    self.abort("Invalid identifier: " + self.tempIdent)
+                    self.abort("Invalid identifier: "+self.tempIdent)
             
             self.match(TokenType.EQ)
+
             self.tempIdent = variables[0]
-            if self.sintaxVar(self.tempIdent):
-                self.assignation(procedure)
-            else:
-                self.abort("Invalid identifier: "+self.tempIdent)
+            self.assignation(procedure)
 
             for i in range(1, len(variables)):
                 self.match(TokenType.COMA)
                 self.tempIdent = variables[i]
-                if self.sintaxVar(self.tempIdent):
-                    self.assignation(procedure)
-                else:
-                    self.abort("Invalid identifier: "+self.tempIdent)
+                self.assignation(procedure)
         
         #List operations or modifiers
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
@@ -683,25 +686,90 @@ class Parser:
             self.tempType = TokenType.BOOLEAN
             self.tempValue = False
         
-        elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
+        elif self.checkToken(TokenType.SQRBRACKETLEFT): # list and matrix
 
-            if curSymbol != TokenType.LIST and curSymbol != None:
-                self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+            matrixIdent = self.tempIdent
+            self.nextToken()
+            elementsSize = []
 
-            listIdent = self.tempIdent
-            self.match(TokenType.SQRBRACKETLEFT)
-            self.checkLstElmnt() #first element
-            elements = 1
-            while not self.checkToken(TokenType.SQRBRACKETRIGHT):
-                self.match(TokenType.COMA)
-                self.checkLstElmnt()
-                elements += 1
+            if self.checkToken(TokenType.SQRBRACKETLEFT) or self.checkToken(TokenType.IDENT):
+
+                rows = 0
+
+                while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+
+                    if self.checkToken(TokenType.SQRBRACKETLEFT):
+
+                        self.nextToken()
+                        listIdent = self.tempIdent
+                        self.checkLstElmnt() #first element
+                        elements = 1
+        
+                        while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            self.match(TokenType.COMA)
+                            self.checkLstElmnt()
+                            elements = elements + 1
+                        
+                        elementsSize.append(elements)
+                            
+                        self.match(TokenType.SQRBRACKETRIGHT)
+
+                        if self.checkToken(TokenType.COMA):
+                            self.nextToken()
+                        elif self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            break;
+                        else:
+                            self.abort("Invalidad token: " + self.curToken.text)
+                        rows = rows+1
+                    
+                    elif self.checkToken(TokenType.IDENT):
+                        self.isListIdent(procedure)
+                        self.nextToken()
+
+                        elementsSize.append(self.getSymbolValue(self.tempIdent))
+
+                        if self.checkToken(TokenType.COMA):
+                            self.nextToken()
+                        elif self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            break;
+                        else:
+                            self.abort("Invalidad token: " + self.curToken.text)
+                        rows = rows + 1
+                    
+                    else:
+                        self.abort("Invalid token: " + self.curToken.text)
+     
+                self.nextToken()
                 
-            self.match(TokenType.SQRBRACKETRIGHT)
+                columnAmount = elementsSize[0]
 
-            self.tempIdent = listIdent
-            self.tempType = TokenType.LIST
-            self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
+                for i in elementsSize:
+                    if i != columnAmount:
+                        self.abort("Mismatch in matrix elements sizes ")
+                
+                self.tempIdent = matrixIdent
+                self.tempType = TokenType.MATRIX
+                self.tempValue = [rows, columnAmount]
+                
+                print("Tamano matriz: ", self.tempValue[0], " ", self.tempValue[1]) #init size of list (could be changed with insert or del built-in functions)
+
+            else:
+                if curSymbol != TokenType.LIST and curSymbol != None:
+                    self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+
+                listIdent = self.tempIdent
+                self.checkLstElmnt() #first element
+                elements = 1
+                while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                    self.match(TokenType.COMA)
+                    self.checkLstElmnt()
+                    elements += 1
+                            
+                self.match(TokenType.SQRBRACKETRIGHT)
+
+                self.tempIdent = listIdent
+                self.tempType = TokenType.LIST
+                self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
         
         elif self.checkToken(TokenType.Range):
             if curSymbol != TokenType.LIST and curSymbol != None:

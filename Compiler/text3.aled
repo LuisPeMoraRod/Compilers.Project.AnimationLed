@@ -1,8 +1,13 @@
 Procedure Main ()
 {
-    var1 = 5;
+    var1, var2, var3 = 5, 8, 0;
 
-    For i In 5 Step 3{
+    list1 = [true, false];
+    list2 = [true, false, true, true];
+
+    matrix1 = [[true, false], list1, [false, true]];
+
+    For i In list1 Step 3{
         var1 = 2;
     };
 };

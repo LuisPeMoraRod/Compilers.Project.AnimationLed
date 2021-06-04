@@ -7,7 +7,7 @@ class Lexer:
         self.curChar = ''   # Current character in the string.
         self.curPos = -1    # Current position in the string.
         self.curLine = 1    # Current line in the code (for error handling)
-        self.specialCharacters = "ºª\!|#$%&/?'¿¡`^*+¨´-_.:,;<>"
+        self.specialCharacters = "ºª\!|#$%&?'¿¡`^*¨´_.<>"
         self.nextChar()
 
     # Process the next character.
