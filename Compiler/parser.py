@@ -5,8 +5,10 @@ from lexer import *
 
 
 class Parser:
-    def __init__(self, lexer):
+    def __init__(self, lexer, emitter):
         self.lexer = lexer
+        self.emitter = emitter
+
         self.hasMainProcedure = False #Helps to know if there is one and only one Main procedure
         self.symbols = []    # Variables declared so far and their types and values        
         self.procedures = [] # Procedures declared so far with their parameter names
@@ -62,7 +64,7 @@ class Parser:
 
     # program ::= {statement}
     def program(self):
-        print("PROGRAM")
+        self.emitter.emitLine("print(\"Hello World\")")
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
