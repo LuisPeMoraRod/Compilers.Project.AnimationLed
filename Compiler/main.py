@@ -18,7 +18,7 @@ def main():
 
     parser.program() # Start the parser.
     print("Parsing completed.")
-    #emitter.writeFile()
+    emitter.writeFile()
     print("Compiling completed")
 
 if __name__ == "__main__":
