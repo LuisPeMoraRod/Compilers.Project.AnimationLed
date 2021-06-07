@@ -7,7 +7,7 @@ class Lexer:
         self.curChar = ''   # Current character in the string.
         self.curPos = -1    # Current position in the string.
         self.curLine = 1    # Current line in the code (for error handling)
-        self.specialCharacters = "ºª\!|#$%&?'¿¡`^*¨´_.<>"
+        self.specialCharacters = "ºª\!|#$%&?'¿¡`^*¨´_<>"
         self.nextChar()
 
     # Process the next character.
@@ -263,14 +263,12 @@ class TokenType(enum.Enum):
     Mil = 117
     Min = 118
     Delay = 119
-    PrintLed = 120
-    PrintLedX = 121
-    C = 122
-    R = 123
-    M = 124
-    ShapeF = 125
-    ShapeC = 126
-    Step = 127
+    C = 120
+    R = 121
+    M = 122
+    ShapeF = 123
+    ShapeC = 124
+    Step = 125
 
     # Operators.
     EQ = 201
