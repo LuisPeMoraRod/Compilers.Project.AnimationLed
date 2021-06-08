@@ -257,9 +257,9 @@ class Parser:
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.DOT):
             self.nextToken()
             self.match(TokenType.DOT)
-            if self.checkToken(TokenType.Insert): #listvar.Insert(5,true);
+            if self.curToken.text == "insert": #listvar.Insert(5,true);
                 print("STATEMENT - INSERT")
-                self.match(TokenType.Insert)
+                self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 size = self.getSymbolValue(self.tempIdent)
                 self.inRange(size, procedure)
@@ -267,13 +267,15 @@ class Parser:
                 self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
 
-            elif self.checkToken(TokenType.Del):
+            elif self.curToken.text == "delete":
                 print("STATEMENT - DELETE")
-                self.match(TokenType.Del)
+                self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 size = self.getSymbolValue(self.tempIdent) - 1
                 self.inRange(size, procedure)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+            else:
+                self.abort("Invalid identifier "+ self.curToken.text)
         
         #Matrix operations or modifiers
 
@@ -898,7 +900,7 @@ class Parser:
             rows = 0
 
             # Validation of a matrix
-            if self.checkToken(TokenType.SQRBRACKETLEFT) or self.checkToken(TokenType.IDENT):
+            if self.checkToken(TokenType.SQRBRACKETLEFT) or (self.checkToken(TokenType.IDENT) and self.isListIdent(procedure)):
                 
                 while not self.checkToken(TokenType.SQRBRACKETRIGHT): 
                     
@@ -930,8 +932,10 @@ class Parser:
                     
                     #Checks if the token ident is a list already declared
                     elif self.checkToken(TokenType.IDENT):
-                        self.isListIdent(procedure)
-                        self.nextToken()
+                        if self.isListIdent(procedure):
+                            self.nextToken()
+                        else:
+                            self.abort("Trying to add an invalid element to the matrix")
 
                         elementsSize.append(self.getSymbolValue(self.tempIdent))
 
@@ -964,42 +968,37 @@ class Parser:
 
             #Validation of a list
             else:
+                elements = 0;
                 if curSymbol != TokenType.LIST and curSymbol != None:
                     self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
 
                 listIdent = self.tempIdent
-                self.checkLstElmnt() #first element
-                elements = 1
-                while not self.checkToken(TokenType.SQRBRACKETRIGHT):
-                    self.match(TokenType.COMA)
-                    self.checkLstElmnt()
-                    elements += 1
-                            
+                if not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                    self.checkLstElmnt() #first element
+                    elements = 1
+                    while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                        self.match(TokenType.COMA)
+                        self.checkLstElmnt()
+                        elements += 1          
                 self.match(TokenType.SQRBRACKETRIGHT)
 
                 self.tempIdent = listIdent
                 self.tempType = TokenType.LIST
                 self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
         
-        elif self.checkToken(TokenType.Range):
-            if curSymbol != TokenType.LIST and curSymbol != None:
-                self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
-            self.match(TokenType.Range)
+        elif self.checkToken(TokenType.IDENT) and self.curToken.text=="list":
+            self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
-            if self.checkToken(TokenType.NUMBER):
-                listIdent = self.tempIdent
-                size = int(self.curToken.text)
+            if self.checkToken(TokenType.IDENT) and self.curToken.text == "range":
                 self.nextToken()
+                self.match(TokenType.ROUNDBRACKETLEFT)
+                self.matchNumber(procedure)
                 self.match(TokenType.COMA)
                 self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
-
-                self.tempIdent = listIdent
-                self.tempType = TokenType.LIST
-                self.tempValue = size
-
+                self.match(TokenType.ROUNDBRACKETRIGHT)
             else:
-                self.match(TokenType.NUMBER)
+                self.abort("Expected the word range, got: " + self.curToken.text)
 
         
         else: # aritmetic expression

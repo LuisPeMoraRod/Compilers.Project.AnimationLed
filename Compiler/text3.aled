@@ -20,4 +20,8 @@ Procedure Main ()
     matrix1.insert(list1, 1, 3);
     matrix1.delete(4, 1);
 
+    If var1 > Len(var3){
+        var3[2:5].Neg;
+    };
+
 };
