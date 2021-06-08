@@ -26,6 +26,9 @@ class Parser:
         self.tempType = None
         self.tempValue = None #Variables values
 
+        # Emitter variables
+        self.indentation = ""
+
         self.curToken = None
         self.peekToken = None
         self.nextToken()
@@ -64,7 +67,7 @@ class Parser:
 
     # program ::= {statement}
     def program(self):
-        self.emitter.emitLine("print(\"Hello World\")")
+        self.emitter.headerLine("import out_aux")
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
@@ -84,6 +87,10 @@ class Parser:
         #Has only one Main procedure validations
         if self.hasMainProcedure and self.tempProcedure == 'Main':
             self.abort("Multiple definition of Main method")
+
+        # Ignore identation in Main method
+        if not self.tempProcedure == 'Main':
+            self.indentation += '\t'
 
         #Checks if the first procedure is Main
         if not self.hasMainProcedure:
