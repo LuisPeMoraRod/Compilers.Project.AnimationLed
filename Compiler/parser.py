@@ -1,4 +1,5 @@
 import sys
+#from typing import type_check_only
 from lexer import *
 
 # Parser object keeps track of current token and checks if the code matches the grammar.
@@ -25,6 +26,8 @@ class Parser:
         self.tempIdent  = None 
         self.tempType = None
         self.tempValue = None #Variables values
+        self.tempRows = None #Amount of rows for matrixes
+        self.tempColumns = None #Amount of columns for matrixes
 
         # Emitter variables
         self.indentation = ""
@@ -124,7 +127,7 @@ class Parser:
 
         # Define parameters as local variables
         for param in self.tempParameters:
-            self.addSymbol(param, None, self.tempProcedure, None)
+            self.addSymbol(param, None, self.tempProcedure, None, None, None)
 
         self.match(TokenType.CURLYBRACKETLEFT)
 
@@ -181,7 +184,7 @@ class Parser:
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
             print("STATEMENT-SIMPLE VAR ASSIGNATION")
-            if self.sintaxVar:
+            if self.sintaxVar(self.tempIdent):
                 self.assignation(procedure)
             else:
                 self.abort("Invalid identifier: "+self.tempIdent)
@@ -189,12 +192,20 @@ class Parser:
         #Compound variable declaration/assignation
         #statement := IDENT compoundIdent "=" compoundDeclaration ";"
         #compoundIdent := {"," IDENT compoundIdent}
+         #Compound variable declaration/assignation
+        #statement := IDENT compoundIdent "=" compoundDeclaration ";"
+        #compoundIdent := {"," IDENT compoundIdent}
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.COMA:
             variables = []
 
             self.tempIdent = self.curToken.text
             self.match(TokenType.IDENT)
-            variables.append(self.tempIdent)
+
+            if self.sintaxVar(self.tempIdent):
+                variables.append(self.tempIdent)
+            else:
+                self.abort("Invalid identifier: "+self.tempIdent)
+            
             
             print("STATEMENT-COMPOUND VAR ASSIGNATION")
 
@@ -202,7 +213,10 @@ class Parser:
                 self.match(TokenType.COMA)
                 self.tempIdent = self.curToken.text
                 self.match(TokenType.IDENT)
-                variables.append(self.tempIdent)
+                if self.sintaxVar(self.tempIdent):
+                    variables.append(self.tempIdent)
+                else:
+                    self.abort("Invalid identifier: "+self.tempIdent)
             
             self.match(TokenType.EQ)
 
@@ -252,9 +266,9 @@ class Parser:
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.DOT):
             self.nextToken()
             self.match(TokenType.DOT)
-            if self.checkToken(TokenType.Insert): #listvar.Insert(5,true);
+            if self.curToken.text == "insert": #listvar.Insert(5,true);
                 print("STATEMENT - INSERT")
-                self.match(TokenType.Insert)
+                self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 size = self.getSymbolValue(self.tempIdent)
                 self.inRange(size, procedure)
@@ -262,13 +276,194 @@ class Parser:
                 self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
 
-            elif self.checkToken(TokenType.Del):
+            elif self.curToken.text == "delete":
                 print("STATEMENT - DELETE")
-                self.match(TokenType.Del)
+                self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 size = self.getSymbolValue(self.tempIdent) - 1
                 self.inRange(size, procedure)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+            else:
+                self.abort("Invalid identifier "+ self.curToken.text)
+        
+        #Matrix operations or modifiers
+
+        elif self.isMatrixIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+            print("STATEMENT-MATRIX MODIFIER")
+
+            self.nextToken() #This should be the [
+            self.nextToken() #This is what is next to the [
+            
+            #Checks if the token is a number:
+            if self.checkToken(TokenType.NUMBER):
+                rowIndex = int(self.curToken.text)
+                self.checkRows(self.getMatrixRows(self.tempIdent), rowIndex)
+                self.nextToken()
+
+                #This is true when user is trying to access a row
+                if self.checkToken(TokenType.SQRBRACKETRIGHT): #Checks for matrix[index]
+                    self.nextToken()
+
+                elif self.checkToken(TokenType.COMA): #Checks for matrix[row,column]
+                    self.nextToken()
+                    if self.checkToken(TokenType.NUMBER):
+                        columnIndex = int(self.curToken.text)
+                        self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
+                        self.nextToken()
+                        self.match(TokenType.SQRBRACKETRIGHT)
+                    else:
+                        self.abort("Expected an int, got: "+ self.curToken.text)
+                else:
+                    self.abort("Expected an int or :, got: "+ self.curToken.text)
+
+                #Checks for matrix1[].Neg operation
+                if self.checkToken(TokenType.DOT):
+                    self.nextToken()
+                    if self.curToken.text == "Neg":
+                        self.nextToken()
+                    else:
+                        self.abort("Expected Neg, got: " + self.curToken.text)
+
+            #Checks for the operation matrix[:,column]
+            elif self.checkToken(TokenType.DOUBLEDOT):
+                self.nextToken()
+                self.match(TokenType.COMA)
+
+                if self.checkToken(TokenType.NUMBER):
+                    columnIndex = int(self.curToken.text)
+                    self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
+                    self.nextToken()
+                    self.match(TokenType.SQRBRACKETRIGHT)
+                else:
+                    self.abort("Expected an int, got: "+ self.curToken.text)
+            
+            else:
+                self.abort("Expected an int or :, got: "+ self.curToken.text)
+            
+            #Checks for matrix1[].Neg operation
+            if self.checkToken(TokenType.DOT):
+                    self.nextToken()
+                    if self.curToken.text == "Neg":
+                        self.nextToken()
+                    else:
+                        self.abort("Expected Neg, got: " + self.curToken.text)
+        
+        #Matrix modifiers
+        elif self.isMatrixIdent(procedure) and self.checkPeek(TokenType.DOT):
+
+            matrixColumns = self.getMatrixColumns(self.tempIdent)
+            matrixRows = self.getMatrixRows(self.tempIdent)
+            matrix = self.tempIdent
+            self.nextToken()
+            if self.checkPeek(TokenType.IDENT):
+                self.nextToken()
+                
+                #Checks if the user wants to retrieve the rows and columns of a matrix
+                if self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
+                    print("GET MATRIX SHAPE: " + self.curToken.text)
+                    self.nextToken()
+                
+                #Checks if the user wants to add an element in the matrix
+                elif self.curToken.text == "insert":
+                    print("INSERT ELEMENT IN MATRIX: "+ self.curToken.text)
+                    self.nextToken()
+                    self.match(TokenType.ROUNDBRACKETLEFT)
+                    elements = 0
+
+                    #checks if the element is a list already created
+                    if self.checkToken(TokenType.IDENT):
+                        self.isListIdent(procedure)
+                        self.nextToken()
+                        self.match(TokenType.COMA)
+                        elements = self.getSymbolValue(self.tempIdent)
+                    
+                    #checks if the element is a new list
+                    elif self.checkToken(TokenType.SQRBRACKETLEFT):
+                        self.nextToken()
+                        self.checkLstElmnt() #first element
+                        elements = 1
+        
+                        while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            self.match(TokenType.COMA)
+                            self.checkLstElmnt()
+                            elements = elements + 1
+                            
+                        self.match(TokenType.SQRBRACKETRIGHT)
+                        self.match(TokenType.COMA)
+                    else:
+                        self.abort("Invalid token: " + self.curToken.text)
+
+                    #Checks for the operation number 0 for rows and 1 for columns
+                    if(self.checkToken(TokenType.NUMBER)):
+                        operation = int(self.curToken.text)
+                        if operation == 0 or operation == 1:
+                            self.nextToken()
+
+                            #Checks if the user wants to select a specific index matrix.insert(element, operation, index)
+                            if self.checkToken(TokenType.COMA):
+                                self.nextToken()
+                                if self.checkToken(TokenType.NUMBER):
+                                    index = int(self.curToken.text)
+                                    if operation == 0:
+                                        self.checkRows(matrixRows, index)
+                                        self.addRows(matrix, procedure)
+                                        
+                                    else:
+                                        self.checkColumns(matrixColumns, index)
+                                        self.addColumns(matrix, procedure)
+                                    
+                                    self.nextToken()
+                                else:
+                                    self.abort("Expected an int, got: " + self.curToken.text)
+                            
+                            #Insert operation without index matrix.insert(element, operation)
+                            elif(self.checkToken(TokenType.ROUNDBRACKETRIGHT)):
+                                if operation == 0:
+                                    self.addRows(matrix, procedure)
+                                        
+                                else:
+                                    self.addColumns(matrix, procedure)
+                                
+                            else:
+                                self.abort("Expected a , or an int, got: " + self.curToken.text)
+                            
+                            self.match(TokenType.ROUNDBRACKETRIGHT)
+                    else:
+                        self.abort("Expected an int, got: " + self.curToken.text)
+                
+                #Delete operation
+                elif self.curToken.text == "delete":
+                    print("DELETE ELEMENT FROM MATRIX: "+ self.curToken.text)
+                    self.nextToken()
+                    self.match(TokenType.ROUNDBRACKETLEFT)
+
+                    #Checks for a valid index
+                    if self.checkToken(TokenType.NUMBER):
+                        index = int(self.curToken.text)
+                        self.nextToken()
+                        self.match(TokenType.COMA)
+
+                        #Checks for the operation: 0 for rows and 1 for columns
+                        if self.checkToken(TokenType.NUMBER):
+                            operation = int(self.curToken.text)
+                            if operation == 0:
+                                self.checkRows(matrixRows, index)
+                                self.deleteRows(matrix, procedure)
+                            elif operation == 1:
+                                self.checkColumns(matrixColumns, index)
+                                self.deleteColumns(matrix, procedure)
+                            else:
+                                self.abort("Expected a 0 or a 1, got: " + self.curToken.text)
+                        else:
+                            self.abort("Expected a 0 or a 1, got: " + self.curToken.text)
+                    else:
+                        self.abort("Expected an int, got: " + self.curToken.text)
+                    self.nextToken()
+                    self.match(TokenType.ROUNDBRACKETRIGHT)
+
+                else:
+                    self.abort("Invalid token: "+ self.curToken.text)
+
 
         #Statement if
         #statement := If comparison "{" {statement} "}" ";"
@@ -285,6 +480,62 @@ class Parser:
                 self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
+        
+        #Statement for
+        #Statement := For variable "In" iterable "Step" num "{" {statement} "}" ";"
+        elif self.checkToken(TokenType.For):
+            print("STATEMENT-FOR")
+            self.nextToken()
+
+            if self.checkToken(TokenType.IDENT):
+                self.tempIdent = self.curToken.text
+                if self.sintaxVar(self.tempIdent):
+                    self.nextToken()
+                    self.match(TokenType.In)
+
+                    #Checks if the iterable is a list
+                    if self.isListIdent(procedure):
+                        listLength = self.getSymbolValue(self.tempIdent)
+                        self.nextToken()
+                        if self.checkToken(TokenType.SQRBRACKETLEFT):
+                            self.nextToken()
+                            if self.checkToken(TokenType.NUMBER):
+                                index1 = int(self.curToken.text)
+                                self.nextToken()
+                                self.match(TokenType.DOUBLEDOT)
+                                if self.checkToken(TokenType.NUMBER):
+                                    index2 = int(self.curToken.text)
+                                    self.checkRange(listLength, index1, index2)
+                                else:
+                                    self.abort("Invalid token: " + self.curToken.text)
+                                self.nextToken()
+                                self.match(TokenType.SQRBRACKETRIGHT)
+                            else:
+                                self.abort("Invalid token: " + self.curToken.text)
+
+                    #Checks if the iterable is a number 
+                    elif self.checkToken(TokenType.NUMBER):
+                        self.nextToken()
+                    else:
+                        self.abort("Invalid iterable: " + self.curToken.text)
+
+                    if self.checkToken(TokenType.Step):
+                        self.nextToken()
+                        self.match(TokenType.NUMBER)
+                        
+                else:
+                    self.abort("Invalid variable name: "+ self.tempIdent)
+            else:
+                self.abort("Invalid statement: " + self.tempIdent)
+            
+            self.match(TokenType.CURLYBRACKETLEFT)
+
+            # Zero or more statements in the body.
+            while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+                self.statement(procedure)
+
+            self.match(TokenType.CURLYBRACKETRIGHT)
+
 
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
         elif self.checkToken(TokenType.Blink):
@@ -566,8 +817,8 @@ class Parser:
         return False
     
     #Add new variable to set
-    def addSymbol(self, identifier, dataType, scope, value):
-        newSymbol = [identifier, dataType, scope, value]
+    def addSymbol(self, identifier, dataType, scope, value, rows, columns):
+        newSymbol = [identifier, dataType, scope, value, rows, columns]
         self.symbols.append(newSymbol)
 
     #Returns data type of given identifier. If variable hasn't been declared, returns None
@@ -582,6 +833,18 @@ class Parser:
         for symbol in self.symbols:
             if symbol[0] == identifier:
                 return symbol[3]
+        return None
+    
+    def getMatrixRows(self, identifier):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                return symbol[4]
+        return None
+    
+    def getMatrixColumns(self, identifier):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                return symbol[5]
         return None
 
     #Add new procedure
@@ -637,45 +900,114 @@ class Parser:
             self.tempType = TokenType.BOOLEAN
             self.tempValue = False
         
-        elif self.checkToken(TokenType.SQRBRACKETLEFT): # list
+        #Check for lists and matrixes
+        elif self.checkToken(TokenType.SQRBRACKETLEFT): 
 
-            if curSymbol != TokenType.LIST and curSymbol != None:
-                self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+            matrixIdent = self.tempIdent
+            self.nextToken()
+            elementsSize = [] #To keep track of the size of the lists that are being added to the matrix
+            rows = 0
 
-            listIdent = self.tempIdent
-            self.match(TokenType.SQRBRACKETLEFT)
-            self.checkLstElmnt() #first element
-            elements = 1
-            while not self.checkToken(TokenType.SQRBRACKETRIGHT):
-                self.match(TokenType.COMA)
-                self.checkLstElmnt()
-                elements += 1
+            # Validation of a matrix
+            if self.checkToken(TokenType.SQRBRACKETLEFT) or (self.checkToken(TokenType.IDENT) and self.isListIdent(procedure)):
                 
-            self.match(TokenType.SQRBRACKETRIGHT)
+                while not self.checkToken(TokenType.SQRBRACKETRIGHT): 
+                    
+                    #Checks if the element of the matrix is a new list
+                    if self.checkToken(TokenType.SQRBRACKETLEFT):
 
-            self.tempIdent = listIdent
-            self.tempType = TokenType.LIST
-            self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
+                        self.nextToken()
+                        listIdent = self.tempIdent
+                        self.checkLstElmnt() #first element
+                        elements = 1
         
-        elif self.checkToken(TokenType.Range):
-            if curSymbol != TokenType.LIST and curSymbol != None:
-                self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
-            self.match(TokenType.Range)
-            self.match(TokenType.ROUNDBRACKETLEFT)
-            if self.checkToken(TokenType.NUMBER):
+                        while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            self.match(TokenType.COMA)
+                            self.checkLstElmnt()
+                            elements = elements + 1
+                        
+                        elementsSize.append(elements)
+                            
+                        self.match(TokenType.SQRBRACKETRIGHT)
+
+                        if self.checkToken(TokenType.COMA):
+                            rows = rows+1
+                            self.nextToken()
+                        elif self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            rows = rows+1
+                            break;
+                        else:
+                            self.abort("Invalidad token: " + self.curToken.text)
+                    
+                    #Checks if the token ident is a list already declared
+                    elif self.checkToken(TokenType.IDENT):
+                        if self.isListIdent(procedure):
+                            self.nextToken()
+                        else:
+                            self.abort("Trying to add an invalid element to the matrix")
+
+                        elementsSize.append(self.getSymbolValue(self.tempIdent))
+
+                        if self.checkToken(TokenType.COMA):
+                            rows = rows + 1
+                            self.nextToken()
+                        elif self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            rows = rows + 1
+                            break;
+                        else:
+                            self.abort("Invalidad token: " + self.curToken.text)
+                    
+                    else:
+                        self.abort("Invalid token: " + self.curToken.text)
+     
+                self.nextToken() #This should be ; at this point
+                
+                columns = elementsSize[0] #This is for reference
+
+                #Checks if the list that contain the matrix are all the same size
+                for i in elementsSize:
+                    if i != columns:
+                        self.abort("Mismatch in matrix elements sizes ")
+                
+                #Gives the type matrix to the current variable
+                self.tempIdent = matrixIdent
+                self.tempType = TokenType.MATRIX
+                self.tempRows = rows
+                self.tempColumns = columns
+
+            #Validation of a list
+            else:
+                elements = 0;
+                if curSymbol != TokenType.LIST and curSymbol != None:
+                    self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+
                 listIdent = self.tempIdent
-                size = int(self.curToken.text)
-                self.nextToken()
-                self.match(TokenType.COMA)
-                self.checkLstElmnt()
-                self.match(TokenType.ROUNDBRACKETRIGHT)
+                if not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                    self.checkLstElmnt() #first element
+                    elements = 1
+                    while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                        self.match(TokenType.COMA)
+                        self.checkLstElmnt()
+                        elements += 1          
+                self.match(TokenType.SQRBRACKETRIGHT)
 
                 self.tempIdent = listIdent
                 self.tempType = TokenType.LIST
-                self.tempValue = size
-
+                self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
+        
+        elif self.checkToken(TokenType.IDENT) and self.curToken.text=="list":
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            if self.checkToken(TokenType.IDENT) and self.curToken.text == "range":
+                self.nextToken()
+                self.match(TokenType.ROUNDBRACKETLEFT)
+                self.matchNumber(procedure)
+                self.match(TokenType.COMA)
+                self.checkLstElmnt()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.match(TokenType.ROUNDBRACKETRIGHT)
             else:
-                self.match(TokenType.NUMBER)
+                self.abort("Expected the word range, got: " + self.curToken.text)
 
         
         else: # aritmetic expression
@@ -692,7 +1024,7 @@ class Parser:
         
         if not self.symbolExists(self.tempIdent, procedure):
             print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
-            self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue)
+            self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue, self.tempRows, self.tempColumns)
 
     #Checks if token is a list identifier 
     def isListIdent(self, procedure):
@@ -701,22 +1033,18 @@ class Parser:
             if self.symbolExists(self.tempIdent, procedure):
                 if self.getSymbolType(self.tempIdent, procedure) == TokenType.LIST:
                     return True
-                else:
-                    self.abort("Attempting to access an NON LIST type variable")
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
             return False
 
-        #Checks if token is a list identifier 
+    #Checks if token is a matrix identifier 
     def isMatrixIdent(self, procedure):
         if self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
             if self.symbolExists(self.tempIdent, procedure):
                 if self.getSymbolType(self.tempIdent, procedure) == TokenType.MATRIX:
                     return True
-                else:
-                    self.abort("Attempting to access an NON MATRIX type variable")
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
@@ -758,9 +1086,64 @@ class Parser:
         else:
             self.match(TokenType.NUMBER)
 
-    def sintaxVar(self):
-        pass
-            
+    #Checks if the name of a variable has a valid name format
+    def sintaxVar(self, tokenText):
+        if len(tokenText) <= 10 and tokenText[0].islower():
+            i = 1
+            while i<len(tokenText):
+                if tokenText[i].isalpha() or tokenText[i].isdigit() or tokenText[i] == "@" or tokenText[i] == "_" or tokenText[i] == "?":
+                    i = i+1
+                else:
+                    return False
+            return True
+        else:
+            return False 
 
+    #Checks if the indexes that are trying to be accessed are within a valid list range
+    def checkRange(self, listLength, index1, index2):
+        if index1 >=0 and index1 < listLength and index2 >=0 and index2 < listLength and index1 <= index2:
+            return True
+        else:
+            self.abort("Invalid range")
+    
+    #Checks if the index that is being tried to access is in a valid column range
+    def checkRows(self, matrixRows, rowAccesed):
+        if matrixRows - 1 < rowAccesed:
+            self.abort("Trying to access a row out of range")
+    
+    #Checks if the index that is being tried to access is in a valid column range
+    def checkColumns(self, matrixColumns, columnAccesed):
+        if matrixColumns - 1 < columnAccesed:
+            self.abort("Trying to access a column out of range")
+    
+    #Increases the amount of rows of a specific matrix
+    def addRows(self, identifier, procedure):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                currentRows = symbol[4]
+                symbol[4] = currentRows + 1 
+                return True
+    
+    #Reduces the amount of rows of a specific matrix
+    def deleteRows(self, identifier, procedure):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                currentRows = symbol[4]
+                symbol[4] = currentRows - 1
+                return True
+    
+    #Increase the amount of columns of a specific matrix
+    def addColumns(self, identifier, procedure):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                currentColumns = symbol[5]
+                symbol[5] = currentColumns + 1 
+                return True
 
-
+    #Reduces the amount of columns of a specific matrix
+    def deleteColumns(self, identifier, procedure):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                currentColumns = symbol[5]
+                symbol[5] = currentColumns - 1 
+                return True
