@@ -1,5 +1,7 @@
 import out_aux
-
-def noneFunction():
-    #hello
-    pass
+function()
+helo = True
+def function2(param):
+        pass
+def function():
+        function2(1)

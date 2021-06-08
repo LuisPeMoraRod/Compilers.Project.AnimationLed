@@ -219,8 +219,10 @@ class Parser:
         #Var =  
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.EQ:
             self.tempIdent = self.curToken.text
+            self.currentLineText += self.indentation + self.tempIdent
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
+            self.currentLineText += '='
             print("STATEMENT-SIMPLE VAR ASSIGNATION")
             if self.sintaxVar(self.tempIdent):
                 self.assignation(procedure)
@@ -894,12 +896,15 @@ class Parser:
     def checkLstElmnt (self):
         if self.checkToken(TokenType.true):
             self.match(TokenType.true)
+            self.currentLineText += "True"
 
         elif self.checkToken(TokenType.false):
             self.match(TokenType.false)
+            self.currentLineText += "False"
             
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
+            self.currentLineText += self.tempIdent
             self.tempType = self.getSymbolType(self.tempIdent, self.tempProcedure)
             if self.tempType != None:
                 if self.tempType == TokenType.BOOLEAN:
@@ -929,6 +934,10 @@ class Parser:
             self.match(TokenType.true)
             self.tempType = TokenType.BOOLEAN
             self.tempValue = True
+            
+            self.currentLineText += " True"
+            self.emitter.emitLine(self.currentLineText)
+            self.currentLineText = ""
 
         elif self.checkToken(TokenType.false): # = false
             if curSymbol != TokenType.BOOLEAN and curSymbol != None:
@@ -937,10 +946,14 @@ class Parser:
             self.match(TokenType.false)
             self.tempType = TokenType.BOOLEAN
             self.tempValue = False
+            self.currentLineText += " False"
+            self.emitter.emitLine(self.currentLineText)
+            self.currentLineText = ""
         
         #Check for lists and matrixes
         elif self.checkToken(TokenType.SQRBRACKETLEFT): 
 
+            self.currentLineText += "["
             matrixIdent = self.tempIdent
             self.nextToken()
             elementsSize = [] #To keep track of the size of the lists that are being added to the matrix
@@ -954,6 +967,7 @@ class Parser:
                     #Checks if the element of the matrix is a new list
                     if self.checkToken(TokenType.SQRBRACKETLEFT):
 
+                        self.currentLineText += "["
                         self.nextToken()
                         listIdent = self.tempIdent
                         self.checkLstElmnt() #first element
@@ -961,8 +975,11 @@ class Parser:
         
                         while not self.checkToken(TokenType.SQRBRACKETRIGHT):
                             self.match(TokenType.COMA)
+                            self.currentLineText += ", "
                             self.checkLstElmnt()
                             elements = elements + 1
+                        
+                        self.currentLineText += "]"
                         
                         elementsSize.append(elements)
                             
@@ -970,9 +987,11 @@ class Parser:
 
                         if self.checkToken(TokenType.COMA):
                             rows = rows+1
+                            self.currentLineText += ", "
                             self.nextToken()
                         elif self.checkToken(TokenType.SQRBRACKETRIGHT):
                             rows = rows+1
+                            self.currentLineText += "]"
                             break;
                         else:
                             self.abort("Invalidad token: " + self.curToken.text)
@@ -980,6 +999,7 @@ class Parser:
                     #Checks if the token ident is a list already declared
                     elif self.checkToken(TokenType.IDENT):
                         if self.isListIdent(procedure):
+                            self.currentLineText += self.curToken
                             self.nextToken()
                         else:
                             self.abort("Trying to add an invalid element to the matrix")
@@ -988,9 +1008,11 @@ class Parser:
 
                         if self.checkToken(TokenType.COMA):
                             rows = rows + 1
+                            self.currentLineText += " ,"
                             self.nextToken()
                         elif self.checkToken(TokenType.SQRBRACKETRIGHT):
                             rows = rows + 1
+                            self.currentLineText += "]"
                             break;
                         else:
                             self.abort("Invalidad token: " + self.curToken.text)
@@ -1013,6 +1035,9 @@ class Parser:
                 self.tempRows = rows
                 self.tempColumns = columns
 
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
+
             #Validation of a list
             else:
                 elements = 0;
@@ -1025,9 +1050,13 @@ class Parser:
                     elements = 1
                     while not self.checkToken(TokenType.SQRBRACKETRIGHT):
                         self.match(TokenType.COMA)
+                        self.currentLineText += ", "
                         self.checkLstElmnt()
                         elements += 1          
                 self.match(TokenType.SQRBRACKETRIGHT)
+                self.currentLineText += ']'
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
 
                 self.tempIdent = listIdent
                 self.tempType = TokenType.LIST
