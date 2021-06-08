@@ -4,6 +4,7 @@ Procedure Main ()
     ##Esto es un comentario afuera
  ##cdcdc
     foo=1; ##cdcdc
+    Call function();
     boolvar = true;
     listvar = [true, false, true, false, boolvar, false, true, true];
     If listvar[5:8] == false {
@@ -13,8 +14,13 @@ Procedure Main ()
     };
 };
 
-Procedure function (param)
+Procedure function2 (param)
 {
-    foo3 = param;
+    foo2 = foo;
+};
+
+Procedure function ()
+{
+    Call function2(param);
     foo2 = foo;
 };

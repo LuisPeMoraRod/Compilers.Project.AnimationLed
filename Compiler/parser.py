@@ -31,6 +31,7 @@ class Parser:
 
         # Emitter variables
         self.indentation = ""
+        self.currentLineText = ""
 
         self.curToken = None
         self.peekToken = None
@@ -93,7 +94,8 @@ class Parser:
 
         # Ignore identation in Main method
         if not self.tempProcedure == 'Main':
-            self.indentation += '\t'
+            self.currentLineText += "def " + self.tempProcedure
+
 
         #Checks if the first procedure is Main
         if not self.hasMainProcedure:
@@ -105,14 +107,31 @@ class Parser:
         self.nextToken()
         self.match(TokenType.ROUNDBRACKETLEFT)
 
+        if not self.tempProcedure == 'Main':
+            self.currentLineText += "("
+
         #Procedure without parameters
         if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
             self.tempParameters = []
+            if not self.tempProcedure == 'Main':
+                self.currentLineText += "):"
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
+                self.indentation += '\t'
             self.nextToken()
 
         #Procedure with parameters
         else:
             self.params(self.tempParameters)
+            if not self.tempProcedure == 'Main':
+                for param in self.tempParameters:
+                    self.currentLineText += param + ","
+                self.currentLineText = self.currentLineText[:-1]
+                self.currentLineText += '):'
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
+                self.indentation += '\t'
+
 
         #Checks if the Main method has no parameters
         if len(self.tempParameters) != 0 and self.tempProcedure == 'Main':
@@ -132,10 +151,18 @@ class Parser:
         self.match(TokenType.CURLYBRACKETLEFT)
 
         # Zero or more statements in the body.
+        statementCounter = 0
         while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+            statementCounter+=1
             self.statement(self.tempProcedure)
+        
+        if statementCounter == 0:
+            self.emitter.emitLine(self.indentation + "pass")
 
         self.match(TokenType.CURLYBRACKETRIGHT)
+        if not self.tempProcedure == 'Main':
+            self.indentation = self.indentation[:-1]
+        
 
 
         self.tempProcedure = None
@@ -156,12 +183,23 @@ class Parser:
             self.tempProcedureCall = self.curToken.text # Saves name for validations
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
+            self.currentLineText += self.indentation + self.tempProcedureCall + '('
 
             if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
                 self.tempParameterCall = []
+                self.currentLineText += ')'
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
                 self.nextToken()
             else:
                 self.params(self.tempParameterCall)
+                for param in self.tempParameterCall:
+                    self.currentLineText += param + ","
+                self.currentLineText = self.currentLineText[:-1]
+                self.currentLineText += ')'
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
+
 
             # Program checks Main procedure calls at the end of the program (due to scope restrictions)
             if not procedure == 'Main':
