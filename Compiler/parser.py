@@ -295,49 +295,28 @@ class Parser:
                 if self.checkToken(TokenType.SQRBRACKETRIGHT): #Checks for matrix[index]
                     self.nextToken()
 
+
                 elif self.checkToken(TokenType.COMA): #Checks for matrix[row,column]
-                    self.nextToken()
-                    if self.checkToken(TokenType.NUMBER):
-                        columnIndex = int(self.curToken.text)
-                        self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
+                    self.getMatrixEl(procedure)
+                    if self.checkToken(TokenType.EQ):
                         self.nextToken()
-                        self.match(TokenType.SQRBRACKETRIGHT)
-                    else:
-                        self.abort("Expected an int, got: "+ self.curToken.text)
+                        self.checkLstElmnt()
+                        
                 else:
                     self.abort("Expected an int or :, got: "+ self.curToken.text)
 
                 #Checks for matrix1[].Neg operation
-                if self.checkToken(TokenType.DOT):
-                    self.nextToken()
-                    if self.curToken.text == "Neg":
-                        self.nextToken()
-                    else:
-                        self.abort("Expected Neg, got: " + self.curToken.text)
+                self.checkNeg(procedure)
 
             #Checks for the operation matrix[:,column]
             elif self.checkToken(TokenType.DOUBLEDOT):
-                self.nextToken()
-                self.match(TokenType.COMA)
-
-                if self.checkToken(TokenType.NUMBER):
-                    columnIndex = int(self.curToken.text)
-                    self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
-                    self.nextToken()
-                    self.match(TokenType.SQRBRACKETRIGHT)
-                else:
-                    self.abort("Expected an int, got: "+ self.curToken.text)
+                self.getAColumn(procedure)
             
             else:
                 self.abort("Expected an int or :, got: "+ self.curToken.text)
             
             #Checks for matrix1[].Neg operation
-            if self.checkToken(TokenType.DOT):
-                    self.nextToken()
-                    if self.curToken.text == "Neg":
-                        self.nextToken()
-                    else:
-                        self.abort("Expected Neg, got: " + self.curToken.text)
+            self.checkNeg(procedure)
         
         #Matrix modifiers
         elif self.isMatrixIdent(procedure) and self.checkPeek(TokenType.DOT):
@@ -351,12 +330,12 @@ class Parser:
                 
                 #Checks if the user wants to retrieve the rows and columns of a matrix
                 if self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
-                    print("GET MATRIX SHAPE: " + self.curToken.text)
+                    print("GET MATRIX SHAPE: " + matrix)
                     self.nextToken()
                 
                 #Checks if the user wants to add an element in the matrix
                 elif self.curToken.text == "insert":
-                    print("INSERT ELEMENT IN MATRIX: "+ self.curToken.text)
+                    print("INSERT ELEMENT IN MATRIX: "+ matrix)
                     self.nextToken()
                     self.match(TokenType.ROUNDBRACKETLEFT)
                     elements = 0
@@ -385,7 +364,7 @@ class Parser:
                         self.abort("Invalid token: " + self.curToken.text)
 
                     #Checks for the operation number 0 for rows and 1 for columns
-                    if(self.checkToken(TokenType.NUMBER)):
+                    if self.checkToken(TokenType.NUMBER):
                         operation = int(self.curToken.text)
                         if operation == 0 or operation == 1:
                             self.nextToken()
@@ -397,11 +376,19 @@ class Parser:
                                     index = int(self.curToken.text)
                                     if operation == 0:
                                         self.checkRows(matrixRows, index)
-                                        self.addRows(matrix, procedure)
+                                        print("Columns: ", matrixColumns)
+                                        print("Elelemnts: ", elements)
+                                        if matrixColumns == elements:
+                                            self.addRows(matrix, procedure)
+                                        else:
+                                            self.abort("The element that is trying to be added to the matrix doesn't match the matrix size")
                                         
                                     else:
                                         self.checkColumns(matrixColumns, index)
-                                        self.addColumns(matrix, procedure)
+                                        if matrixRows == elements:
+                                            self.addColumns(matrix, procedure)
+                                        else:
+                                            self.abort("The element that is trying to be added to the matrix doesn't match the matrix size")
                                     
                                     self.nextToken()
                                 else:
@@ -410,10 +397,16 @@ class Parser:
                             #Insert operation without index matrix.insert(element, operation)
                             elif(self.checkToken(TokenType.ROUNDBRACKETRIGHT)):
                                 if operation == 0:
-                                    self.addRows(matrix, procedure)
+                                    if matrixColumns == elements:
+                                        self.addRows(matrix, procedure)
+                                    else:
+                                        self.abort("The element that is trying to be added to the matrix doesn't match the matrix size")
                                         
                                 else:
-                                    self.addColumns(matrix, procedure)
+                                    if matrixRows == elements:
+                                        self.addColumns(matrix, procedure)
+                                    else:
+                                        self.abort("The element that is trying to be added to the matrix doesn't match the matrix size")
                                 
                             else:
                                 self.abort("Expected a , or an int, got: " + self.curToken.text)
@@ -987,12 +980,22 @@ class Parser:
                 self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
         
         elif self.checkToken(TokenType.IDENT) and self.curToken.text=="list":
+            listIdent = self.tempIdent
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
+            elements = 0
             if self.checkToken(TokenType.IDENT) and self.curToken.text == "range":
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
-                self.matchNumber(procedure)
+                if self.checkToken(TokenType.NUMBER):
+                    elements = int(self.curToken.text)
+                elif self.checkToken(TokenType.IDENT):
+                    if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                        elements = self.getSymbolValue(self.curToken.text)
+                else:
+                    self.abort("Invalid identifier: "+ self.curToken.text)
+                
+                self.nextToken()
                 self.match(TokenType.COMA)
                 self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
@@ -1000,22 +1003,68 @@ class Parser:
             else:
                 self.abort("Expected the word range, got: " + self.curToken.text)
 
+            self.tempIdent = listIdent
+            self.tempType = TokenType.LIST
+            self.tempValue = elements
         
+
         else: # aritmetic expression
             if curSymbol != TokenType.NUMBER and curSymbol != None:
                 self.abort("Attempting to assign a NUMBER to a " + curSymbol.name + " typed variable: " + self.tempIdent)
 
             ident = self.tempIdent
             self.tempProcedure = procedure
-            self.expression()
-            self.tempType = TokenType.NUMBER
-            self.tempIdent = ident
-            self.tempValue = None
+
+            if self.getSymbolType(self.curToken.text, procedure) == TokenType.MATRIX:
+                self.tempType = TokenType.MATRIX
+                self.tempIdent = ident
+                self.tempValue = None
+                self.tempColumns = self.getMatrixColumns(self.curToken.text)
+                self.tempRows = self.getMatrixRows(self.curToken.text)
+                self.nextToken()
+
+            elif self.getSymbolType(self.curToken.text, procedure) == TokenType.LIST:
+                ident = self.curToken.text
+                self.nextToken()
+                if self.checkToken(TokenType.SQRBRACKETLEFT):
+                    self.nextToken()
+                    if self.checkToken(TokenType.NUMBER):
+                        index = int(self.curToken.text)
+                        if index>self.getSymbolValue(ident)-1 and index>=0:
+                            self.abort("Index out of range")
+                        else:
+                            self.nextToken()
+                        if self.checkToken(TokenType.DOUBLEDOT):
+                            self.nextToken()
+                            if self.checkToken(TokenType.NUMBER):
+                                index2 = int(self.curToken.text)
+                                if index2>=self.getSymbolValue(ident) - 1 and index2 >= index:
+                                    self.nextToken()
+                                    self.tempType = TokenType.LIST
+                                    self.tempValue = index2 - index
+
+                                else:
+                                    print(index2)
+                                    self.abort("Invalid range")
+                            else:
+                                self.abort("Expected a number, got: " + self.curToken.text)
+                        elif self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            self.tempType = TokenType.NUMBER
+                            self.tempIdent = ident
+                            self.tempValue = None
+                        self.match(TokenType.SQRBRACKETRIGHT)
+            
+            else:
+                self.expression()
+                self.tempType = TokenType.NUMBER
+                self.tempIdent = ident
+                self.tempValue = None
         
         
         if not self.symbolExists(self.tempIdent, procedure):
             print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue, self.tempRows, self.tempColumns)
+    
 
     #Checks if token is a list identifier 
     def isListIdent(self, procedure):
@@ -1138,3 +1187,36 @@ class Parser:
                 currentColumns = symbol[5]
                 symbol[5] = currentColumns - 1 
                 return True
+    
+    def getAColumn(self, procedure):
+        self.checkToken(TokenType.SQRBRACKETLEFT)
+        self.nextToken()
+        self.match(TokenType.COMA)
+        if self.checkToken(TokenType.NUMBER):
+            columnIndex = int(self.curToken.text)
+            self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
+            self.nextToken()
+            self.match(TokenType.SQRBRACKETRIGHT)
+            return True
+        else:
+            self.abort("Expected a number, got: " + self.curToken.text)
+    
+    def getMatrixEl(self, procedure):
+        self.nextToken()
+        if self.checkToken(TokenType.NUMBER):
+            columnIndex = int(self.curToken.text)
+            self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
+            self.nextToken()
+            self.match(TokenType.SQRBRACKETRIGHT)
+            return True
+        else:
+            self.abort("Expected an int, got: "+ self.curToken.text)
+
+    def checkNeg(self, procedure):
+        if self.checkToken(TokenType.DOT):
+                    self.nextToken()
+                    if self.curToken.text == "Neg":
+                        self.nextToken()
+                    else:
+                        self.abort("Expected Neg, got: " + self.curToken.text)
+
