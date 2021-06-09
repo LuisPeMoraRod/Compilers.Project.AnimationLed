@@ -726,6 +726,10 @@ class Parser:
         self.term()
         # Can have 0 or more +/- and expressions.
         while self.checkToken(TokenType.PLUS) or self.checkToken(TokenType.MINUS):
+            if self.checkToken(TokenType.PLUS):
+                self.currentLineText += '+'
+            elif self.checkToken(TokenType.MINUS):
+                self.currentLineText += '-'
             self.nextToken()
             self.term()
 
@@ -736,6 +740,12 @@ class Parser:
         self.unary()
         # Can have 0 or more * / and expressions.
         while self.checkToken(TokenType.ASTERISK) or self.checkToken(TokenType.SLASH) or self.checkToken(TokenType.SLASHD):
+            if self.checkToken(TokenType.ASTERISK):
+                self.currentLineText += '*'
+            elif self.checkToken(TokenType.SLASH):
+                self.currentLineText += '/'
+            elif self.checkToken(TokenType.SLASHD):
+                self.currentLineText += '//'
             self.nextToken()
             self.unary()
 
@@ -746,6 +756,10 @@ class Parser:
 
         # Optional unary +/-
         if self.checkToken(TokenType.PLUS) or self.checkToken(TokenType.MINUS):
+            if self.checkToken(TokenType.PLUS):
+                self.currentLineText += '+'
+            elif self.checkToken(TokenType.MINUS):
+                self.currentLineText += '-'
             self.nextToken()        
         self.module()
 
@@ -753,6 +767,7 @@ class Parser:
     def module(self):
         self.exp()
         while self.checkToken(TokenType.MODULE):
+            self.currentLineText += '%'
             print("MODULE")
             self.nextToken()
             self.exp()
@@ -761,6 +776,7 @@ class Parser:
     def exp(self):
         self.primary()
         while self.checkToken(TokenType.ASTERISKD):
+            self.currentLineText += '**'
             print("EXPONENT")
             self.nextToken()
             self.primary()
@@ -770,11 +786,13 @@ class Parser:
     def primary(self):
         print("PRIMARY ( \'" + self.curToken.text + "\' )")
 
-        if self.checkToken(TokenType.NUMBER): 
+        if self.checkToken(TokenType.NUMBER):
+            self.currentLineText += self.curToken.text
             self.nextToken()
 
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
+            self.currentLineText += self.tempIdent
             if self.symbolExists(self.tempIdent, self.tempProcedure):
                 self.nextToken()
                 self.squareBrackets(self.tempIdent)
@@ -782,18 +800,23 @@ class Parser:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
 
         elif self.checkToken(TokenType.ROUNDBRACKETLEFT):
+            self.currentLineText += '('
             self.nextToken()
             self.expression()
             print("PRIMARY ( \'" + self.curToken.text + "\' )")
             self.match(TokenType.ROUNDBRACKETRIGHT)
+            self.currentLineText +=')'
         
         elif self.checkToken(TokenType.Len): #Len statement
             print("STATEMENT - Len")
+            self.currentLineText += 'len('
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             if self.isListIdent(self.tempProcedure):
+                self.currentLineText += self.curToken.text
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.currentLineText += ')'
             else:
                 self.match(TokenType.IDENT)
             
@@ -1068,11 +1091,16 @@ class Parser:
             if self.checkToken(TokenType.IDENT) and self.curToken.text == "range":
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
+                self.currentLineText += "out_aux.createList("
                 self.matchNumber(procedure)
                 self.match(TokenType.COMA)
+                self.currentLineText += ', '
                 self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.currentLineText += ')'
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
             else:
                 self.abort("Expected the word range, got: " + self.curToken.text)
 
@@ -1084,11 +1112,12 @@ class Parser:
             ident = self.tempIdent
             self.tempProcedure = procedure
             self.expression()
+            self.emitter.emitLine(self.currentLineText)
+            self.currentLineText = ""
             self.tempType = TokenType.NUMBER
             self.tempIdent = ident
             self.tempValue = None
-        
-        
+
         if not self.symbolExists(self.tempIdent, procedure):
             print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue, self.tempRows, self.tempColumns)
@@ -1120,9 +1149,11 @@ class Parser:
     #Checks if token matches with a NUMBER type (could be a primitive or a variable)
     def matchNumber(self, procedure):
         if self.checkToken(TokenType.NUMBER):
+            self.currentLineText += self.curToken.text
             self.nextToken()
         elif self.checkToken(TokenType.IDENT):
             self.tempIdent = self.curToken.text
+            self.currentLineText += self.tempIdent
             if self.symbolExists(self.tempIdent, procedure):
                 if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
                     self.nextToken()

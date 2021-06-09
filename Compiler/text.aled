@@ -3,10 +3,13 @@ Procedure Main ()
 {
     ##Esto es un comentario afuera
  ##cdcdc
+    sum1 = 8 + 9 *20%6;
+    list5 = list(range(5, true));
     foo=1; ##cdcdc
     Call function();
     boolvar = true;
     listvar = [true, false, true, false, boolvar, false, true, true];
+    listvarL = Len(listvar);
     matrix = [[true, false], [boolvar, false]];
     If listvar[5:8] == false {
         If foo > 0 {
