@@ -15,6 +15,8 @@ Procedure Main ()
     listvar[6].Neg;
     listvar[6].T;
     listvar[6].F;
+    listvar.insert(3, true);
+    listvar.delete(2);
     listvarL = Len(listvar);
     matrix = [[true, false], [boolvar, false]];
 };

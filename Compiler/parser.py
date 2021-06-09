@@ -324,30 +324,40 @@ class Parser:
         
         #Insert or delete elements from list
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.DOT):
+            self.currentLineText += self.indentation + self.curToken.text + '.'
             self.nextToken()
             self.match(TokenType.DOT)
             if self.curToken.text == "insert": #listvar.Insert(5,true);
+                self.currentLineText += "insert("
                 print("STATEMENT - INSERT")
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
+                self.currentLineText += self.curToken.text
                 size = self.getSymbolValue(self.tempIdent)
                 self.inRange(size, procedure)
                 self.match(TokenType.COMA)
+                self.currentLineText += ', '
                 self.checkLstElmnt()
+                self.currentLineText += ')'
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
 
             elif self.curToken.text == "delete":
+                self.currentLineText += "delete("
                 print("STATEMENT - DELETE")
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
+                self.currentLineText += self.curToken.text + ')'
                 size = self.getSymbolValue(self.tempIdent) - 1
                 self.inRange(size, procedure)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
             else:
                 self.abort("Invalid identifier "+ self.curToken.text)
         
         #Matrix operations or modifiers
-
         elif self.isMatrixIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
             print("STATEMENT-MATRIX MODIFIER")
 

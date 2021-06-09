@@ -38,9 +38,14 @@ def modifyElement(variable, index, value):
     elif value == False:
         variable[index] = False
 
-'''
+
 list = [True, True, True]
 print(list)
 modifyElement(list, 2, False)
 print(list)
-'''
+
+list.insert(2, 3)
+print(list)
+
+list.remove(1)
+print(list)
