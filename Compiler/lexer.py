@@ -271,6 +271,7 @@ class TokenType(enum.Enum):
     Step = 125
     PrintLed = 126
     PrintLedX = 127
+    List = 128
 
     # Operators.
     EQ = 201
