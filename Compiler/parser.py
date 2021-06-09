@@ -473,14 +473,15 @@ class Parser:
             self.nextToken()
 
             if self.checkToken(TokenType.IDENT):
-                self.tempIdent = self.curToken.text
-                if self.sintaxVar(self.tempIdent):
+                iterable = self.curToken.text
+                if self.sintaxVar(iterable):
+                    self.addSymbol(iterable, TokenType.NUMBER, procedure, 0, None, None)
                     self.nextToken()
                     self.match(TokenType.In)
 
                     #Checks if the iterable is a list
                     if self.isListIdent(procedure):
-                        listLength = self.getSymbolValue(self.tempIdent)
+                        listLength = self.getSymbolValue(self.curToken.text)
                         self.nextToken()
                         if self.checkToken(TokenType.SQRBRACKETLEFT):
                             self.nextToken()
@@ -520,6 +521,7 @@ class Parser:
                 self.statement(procedure)
 
             self.match(TokenType.CURLYBRACKETRIGHT)
+            self.deleteSymbol(iterable, procedure)
 
 
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
@@ -1239,4 +1241,15 @@ class Parser:
                         self.nextToken()
                     else:
                         self.abort("Expected Neg, got: " + self.curToken.text)
+    
+    def deleteSymbol(self, identifier, procedure):
+        counter = 0
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                del self.symbols[counter]
+                return True
+            else:
+                counter = counter + 1
+        return False
+
 
