@@ -192,7 +192,7 @@ class Parser:
                 self.currentLineText = ""
                 self.nextToken()
             else:
-                self.params(self.tempParameterCall)
+                self.paramsCall(self.tempParameterCall)
                 for param in self.tempParameterCall:
                     self.currentLineText += param + ","
                 self.currentLineText = self.currentLineText[:-1]
@@ -232,7 +232,7 @@ class Parser:
         #Compound variable declaration/assignation
         #statement := IDENT compoundIdent "=" compoundDeclaration ";"
         #compoundIdent := {"," IDENT compoundIdent}
-         #Compound variable declaration/assignation
+        #Compound variable declaration/assignation
         #statement := IDENT compoundIdent "=" compoundDeclaration ";"
         #compoundIdent := {"," IDENT compoundIdent}
         elif self.checkToken(TokenType.IDENT) and self.peekToken.kind == TokenType.COMA:
@@ -261,15 +261,20 @@ class Parser:
             self.match(TokenType.EQ)
 
             self.tempIdent = variables[0]
+
+            self.currentLineText = self.tempIdent + '='
             self.assignation(procedure)
+
 
             for i in range(1, len(variables)):
                 self.match(TokenType.COMA)
                 self.tempIdent = variables[i]
+                self.currentLineText = self.tempIdent + '='
                 self.assignation(procedure)
         
         #List operations or modifiers
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
+            self.currentLineText += self.indentation
             print("STATEMENT-LIST MODIFIER")
             self.nextToken()
             is_range = False
@@ -283,21 +288,36 @@ class Parser:
                 self.match(TokenType.EQ)
                 if is_range: #range assignation: listvar[1:3] = [true, false]
                     self.match(TokenType.SQRBRACKETLEFT)
+                    self.currentLineText += '['
                     list_range = delimiters[1] - delimiters[0]
                     self.checkLstElmnt() #first element
                     for i in range(list_range - 1):
                         self.match(TokenType.COMA)
+                        self.currentLineText += ', '
                         self.checkLstElmnt()
                     self.match(TokenType.SQRBRACKETRIGHT)
+                    self.currentLineText += '])'
+                    self.emitter.emitLine(self.currentLineText)
+                    self.currentLineText = ""
                 else:
                     self.checkLstElmnt()
+                    self.currentLineText += ')'
+                    self.emitter.emitLine(self.currentLineText)
+                    self.currentLineText = ""
 
             elif self.checkToken(TokenType.DOT): #Validation for list operations: listvar[0].Neg; listvar[0].T; listvar[0].F;
                                                 #statement := IDENT squareBrackets "." ("Neg" | "T" | "F")
                 print("DOT")
                 self.match(TokenType.DOT)
                 if self.checkToken(TokenType.Neg) or self.checkToken(TokenType.F) or self.checkToken(TokenType.T):
-                    print(self.curToken.text)
+                    if self.checkToken(TokenType.Neg):
+                        self.currentLineText += '0)'
+                    elif self.checkToken(TokenType.F):
+                        self.currentLineText += 'False)'
+                    elif self.checkToken(TokenType.T):
+                        self.currentLineText += 'True)'
+                    self.emitter.emitLine(self.currentLineText)
+                    self.currentLineText = ""
                     self.nextToken()
                 else:
                     self.abort("Unrecognized statement at: " + self.curToken.text)
@@ -677,6 +697,23 @@ class Parser:
             if not self.checkToken(TokenType.COMA):
                 self.abort("Expected a COMA ',' at " + self.curToken.text)
             self.nextToken()
+    
+    def paramsCall(self, parameterList):
+        print("PARAMETERS - CALL")
+        while True:
+            if self.checkToken(TokenType.IDENT) or self.checkToken(TokenType.NUMBER)\
+                or self.checkToken(TokenType.true) or self.checkToken(TokenType.false):
+                parameterList.append(self.curToken.text)
+            else:
+                self.abort("Invalid parameter statement at " + self.curToken.text + " (" + self.curToken.kind.name + ")")
+            self.nextToken()
+            if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
+                self.nextToken()
+                break
+            if not self.checkToken(TokenType.COMA):
+                self.abort("Expected a COMA ',' at " + self.curToken.text)
+            self.nextToken()
+
     # semicolon ::= ';'+
     def semicolon(self):
         print("SEMICOLON")
@@ -834,23 +871,32 @@ class Parser:
                 if self.checkToken(TokenType.DOUBLEDOT):
                     self.match(TokenType.DOUBLEDOT)
                     self.match(TokenType.COMA)
+                    
                     size = self.getSymbolValue(identifier)
                     self.inRange(size, self.tempProcedure) 
                     self.match(TokenType.SQRBRACKETRIGHT)
 
                 elif self.checkToken(TokenType.NUMBER): #range: listvar[1:6] or simple id listvar[0]
+                    tempCurrentText1 = "out_aux.modifyList(" + identifier + ', '
+                    tempCurrentText2 = "out_aux.modifyElement(" + identifier + ', '
                     size = self.getSymbolValue(identifier)
                     num1 = int(self.curToken.text)
+                    tempCurrentText1 += self.curToken.text + ', '
+                    tempCurrentText2 += self.curToken.text + ', '
                     self.inRange(size, self.tempProcedure)
                     if self.checkToken(TokenType.DOUBLEDOT):
                         self.match(TokenType.DOUBLEDOT)
+                        self.currentLineText += tempCurrentText1
                         num2 = int(self.curToken.text)
+                        self.currentLineText += self.curToken.text + ', '
                         if num1 < num2:
                             self.inRange(size, self.tempProcedure)
                             self.match(TokenType.SQRBRACKETRIGHT)
                             return (num1, num2)
                         else:
                             self.abort("Invalid range")
+                    else:
+                        self.currentLineText += tempCurrentText2
                     self.match(TokenType.SQRBRACKETRIGHT)
 
 
