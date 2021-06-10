@@ -1,4 +1,4 @@
-##listvar = [true, false, true, false, boolvar, false, true, true];
+##listvar = [true, false, true, false, boolvar, false, true, true]
 Procedure Main ()
 {
     ##Esto es un comentario afuera
@@ -19,11 +19,17 @@ Procedure Main ()
     listvar.delete(2);
     listvarL = Len(listvar);
     matrix = [[true, false], [boolvar, false]];
+
+    
 };
 
 Procedure function2 (param, param2)
 {
     foo2 = foo;
+    If boolvar == true
+    {
+        sum3 = 2;
+    };
 };
 
 Procedure function ()

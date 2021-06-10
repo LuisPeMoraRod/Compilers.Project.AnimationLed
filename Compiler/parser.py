@@ -539,15 +539,22 @@ class Parser:
         #statement := If comparison "{" {statement} "}" ";"
         elif self.checkToken(TokenType.If):
             print("STATEMENT-IF")
+            self.currentLineText = self.indentation + "if "
             self.nextToken()
             self.tempProcedure = procedure
             self.comparison()
+            self.currentLineText += ":"
+            self.emitter.emitLine(self.currentLineText)
+            self.currentLineText = ""
+            self.indentation += '\t'
 
             self.match(TokenType.CURLYBRACKETLEFT)
 
             # Zero or more statements in the body.
             while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
                 self.statement(procedure)
+
+            self.indentation = self.indentation[:-1]
 
             self.match(TokenType.CURLYBRACKETRIGHT)
         
@@ -750,8 +757,10 @@ class Parser:
         if self.isComparisonOperator():
             self.nextToken()
             if self.checkToken(TokenType.true):
+                self.currentLineText += "True"
                 self.match(TokenType.true)
             elif self.checkToken(TokenType.false):
+                self.currentLineText += "False"
                 self.match(TokenType.false)
             else:
                 self.expression()
@@ -764,6 +773,20 @@ class Parser:
             self.expression()
     
     def isComparisonOperator(self):
+            if self.checkToken(TokenType.GT):
+                self.currentLineText += '>'
+            elif self.checkToken(TokenType.GTEQ):
+                self.currentLineText += '>='
+            elif self.checkToken(TokenType.GTEQ):
+                self.currentLineText += '>='
+            elif self.checkToken(TokenType.LT):
+                self.currentLineText += '<'
+            elif self.checkToken(TokenType.LTEQ):
+                self.currentLineText += '<='
+            elif self.checkToken(TokenType.EQEQ):
+                self.currentLineText += '=='
+            elif self.checkToken(TokenType.NOTEQ):
+                self.currentLineText += '!='
             return self.checkToken(TokenType.GT) or self.checkToken(TokenType.GTEQ) or self.checkToken(TokenType.LT) or self.checkToken(TokenType.LTEQ) or self.checkToken(TokenType.EQEQ) or self.checkToken(TokenType.NOTEQ)
 
     # expression ::= term {( "-" | "+" ) term}
