@@ -361,22 +361,30 @@ class Parser:
         elif self.isMatrixIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
             print("STATEMENT-MATRIX MODIFIER")
 
+            tempMatrixIdent = self.curToken.text
+            tempMatrixRow = ""
+            tempOperation = ""
+            tempMatrixColumn = ""
             self.nextToken() #This should be the [
             self.nextToken() #This is what is next to the [
             
             #Checks if the token is a number:
             if self.checkToken(TokenType.NUMBER):
+                tempMatrixRow = self.curToken.text
                 rowIndex = int(self.curToken.text)
                 self.checkRows(self.getMatrixRows(self.tempIdent), rowIndex)
                 self.nextToken()
 
                 #This is true when user is trying to access a row
                 if self.checkToken(TokenType.SQRBRACKETRIGHT): #Checks for matrix[index]
+                    tempOperation = "Row"
                     self.nextToken()
 
                 elif self.checkToken(TokenType.COMA): #Checks for matrix[row,column]
+                    tempOperation = "Element"
                     self.nextToken()
                     if self.checkToken(TokenType.NUMBER):
+                        tempMatrixColumn = self.curToken.text
                         columnIndex = int(self.curToken.text)
                         self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
                         self.nextToken()
@@ -390,16 +398,26 @@ class Parser:
                 if self.checkToken(TokenType.DOT):
                     self.nextToken()
                     if self.curToken.text == "Neg":
+                        self.currentLineText = self.indentation
+                        self.currentTextLine = self.indentation
+                        if tempOperation == "Row":
+                            self.currentLineText += "out_aux.modifyMatrixRow(" + tempMatrixIdent + ", " + tempMatrixRow + ")"
+                        elif tempOperation == "Element":
+                            self.currentLineText += "out_aux.modifyMatrixElement(" + tempMatrixIdent + ", " + tempMatrixRow + ", " + tempMatrixColumn + ")"
+                        self.emitter.emitLine(self.currentLineText)
+                        self.currentLineText = ""
                         self.nextToken()
                     else:
                         self.abort("Expected Neg, got: " + self.curToken.text)
 
             #Checks for the operation matrix[:,column]
             elif self.checkToken(TokenType.DOUBLEDOT):
+                tempOperation = "Column"
                 self.nextToken()
                 self.match(TokenType.COMA)
 
                 if self.checkToken(TokenType.NUMBER):
+                    tempMatrixColumn = self.curToken.text
                     columnIndex = int(self.curToken.text)
                     self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
                     self.nextToken()
@@ -414,6 +432,10 @@ class Parser:
             if self.checkToken(TokenType.DOT):
                     self.nextToken()
                     if self.curToken.text == "Neg":
+                        self.currentLineText = self.indentation
+                        self.currentLineText += "out_aux.modifyMatrixColumn(" + tempMatrixIdent + ", " + tempMatrixColumn + ")"
+                        self.emitter.emitLine(self.currentLineText)
+                        self.currentLineText = ""
                         self.nextToken()
                     else:
                         self.abort("Expected Neg, got: " + self.curToken.text)
@@ -424,12 +446,21 @@ class Parser:
             matrixColumns = self.getMatrixColumns(self.tempIdent)
             matrixRows = self.getMatrixRows(self.tempIdent)
             matrix = self.tempIdent
+            tempMatrixOperation = ""
+            tempList = ""
             self.nextToken()
             if self.checkPeek(TokenType.IDENT):
                 self.nextToken()
                 
                 #Checks if the user wants to retrieve the rows and columns of a matrix
                 if self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
+                    self.currentTextLine = self.indentation
+                    if self.curToken.text == "shapeF":
+                        self.currentTextLine += "len("  + matrix + ")"
+                    else:
+                        self.currentTextLine += "len("  + matrix + "[0])"
+                    self.emitter.emitLine(self.currentTextLine)
+                    self.currentTextLine = ""
                     print("GET MATRIX SHAPE: " + self.curToken.text)
                     self.nextToken()
                 
@@ -442,6 +473,7 @@ class Parser:
 
                     #checks if the element is a list already created
                     if self.checkToken(TokenType.IDENT):
+                        tempList = self.curToken.text
                         self.isListIdent(procedure)
                         self.nextToken()
                         self.match(TokenType.COMA)
@@ -450,21 +482,28 @@ class Parser:
                     #checks if the element is a new list
                     elif self.checkToken(TokenType.SQRBRACKETLEFT):
                         self.nextToken()
+                        tempList += "[" + self.curToken.text
                         self.checkLstElmnt() #first element
+                        print("Adding to the list: " + self.currentTextLine)
                         elements = 1
         
                         while not self.checkToken(TokenType.SQRBRACKETRIGHT):
                             self.match(TokenType.COMA)
+                            tempList += ','
+                            tempList += self.curToken.text
                             self.checkLstElmnt()
+                            print("Adding to the list: " + self.currentTextLine)
                             elements = elements + 1
                             
                         self.match(TokenType.SQRBRACKETRIGHT)
+                        tempList += ']'
                         self.match(TokenType.COMA)
                     else:
                         self.abort("Invalid token: " + self.curToken.text)
 
                     #Checks for the operation number 0 for rows and 1 for columns
                     if(self.checkToken(TokenType.NUMBER)):
+                        tempMatrixOperation = self.curToken.text
                         operation = int(self.curToken.text)
                         if operation == 0 or operation == 1:
                             self.nextToken()
@@ -473,6 +512,7 @@ class Parser:
                             if self.checkToken(TokenType.COMA):
                                 self.nextToken()
                                 if self.checkToken(TokenType.NUMBER):
+                                    tempMatrixOperation += self.curToken.text
                                     index = int(self.curToken.text)
                                     if operation == 0:
                                         self.checkRows(matrixRows, index)
@@ -501,14 +541,31 @@ class Parser:
                     else:
                         self.abort("Expected an int, got: " + self.curToken.text)
                 
+                    self.currentTextLine = self.indentation
+                    if len(tempMatrixOperation) == 1:
+                        if tempMatrixOperation == "0":
+                            self.currentTextLine += "out_aux.insertMatrixRow(" + matrix + "," + tempList + ")"
+                        elif tempMatrixOperation == "1":
+                            self.currentTextLine += "out_aux.insertMatrixColumn(" + matrix + "," + tempList + ")"
+                    else:
+                        if tempMatrixOperation[0] == "0":
+                            self.currentTextLine += "out_aux.insertMatrixRowAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
+                        elif tempMatrixOperation[0] == "1":
+                            self.currentTextLine += "out_aux.insertMatrixColumnAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
+                    self.emitter.emitLine(self.currentTextLine)
+                    self.currentTextLine = ""
+
+                
                 #Delete operation
                 elif self.curToken.text == "delete":
                     print("DELETE ELEMENT FROM MATRIX: "+ self.curToken.text)
                     self.nextToken()
                     self.match(TokenType.ROUNDBRACKETLEFT)
+                    posNumber = ""
 
                     #Checks for a valid index
                     if self.checkToken(TokenType.NUMBER):
+                        posNumber = self.curToken.text
                         index = int(self.curToken.text)
                         self.nextToken()
                         self.match(TokenType.COMA)
@@ -519,9 +576,17 @@ class Parser:
                             if operation == 0:
                                 self.checkRows(matrixRows, index)
                                 self.deleteRows(matrix, procedure)
+                                self.currentTextLine = self.indentation
+                                self.currentTextLine += "out_aux.deleteMatrixRow(" + posNumber + ")"
+                                self.emitter.emitLine(self.currentTextLine)
+                                self.currentTectLine = ""
                             elif operation == 1:
                                 self.checkColumns(matrixColumns, index)
                                 self.deleteColumns(matrix, procedure)
+                                self.currentTextLine = self.indentation
+                                self.currentTextLine += "out_aux.deleteMatrixColumn(" + posNumber + ")"
+                                self.emitter.emitLine(self.currentTextLine)
+                                self.currentTectLine = ""
                             else:
                                 self.abort("Expected a 0 or a 1, got: " + self.curToken.text)
                         else:
