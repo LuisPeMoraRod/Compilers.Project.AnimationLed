@@ -32,6 +32,7 @@ class Parser:
         # Emitter variables
         self.indentation = ""
         self.currentLineText = ""
+        self.stepVar = "i0"
 
         self.curToken = None
         self.peekToken = None
@@ -668,6 +669,7 @@ class Parser:
             print("STATEMENT-FOR")
             self.nextToken()
             self.currentTextLine = self.indentation + "for "
+            hasStep = False
 
             if self.checkToken(TokenType.IDENT):
                 self.tempIdent = self.curToken.text
@@ -723,23 +725,29 @@ class Parser:
                     else:
                         self.abort("Invalid iterable: " + self.curToken.text)
 
+                    self.changeStepVar()
+                    self.emitter.emitLine(self.indentation + self.stepVar + " = 0")
+                    self.emitter.emitLine(self.currentTextLine + ":")
+                    self.currentTextLine = ""
+                    self.indentation += '\t'
+
                     if self.checkToken(TokenType.Step):
                         self.nextToken()
                         if self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
+                            self.emitter.emitLine(self.indentation + "if " + self.stepVar + " % " + self.curToken.text + " == 0:")
+                            self.indentation += '\t'
+                            hasStep = True
                             self.nextToken()
                         else:
                             self.abort("Invalid identifier: "+ self.curToken.text)
                     
-                    self.emitter.emitLine(self.currentTextLine)
-                    self.currentTextLine = ""
-                        
                 else:
                     self.abort("Invalid variable name: "+ self.tempIdent)
             else:
                 self.abort("Invalid statement: " + self.tempIdent)
             
             self.match(TokenType.CURLYBRACKETLEFT)
-            self.indentation += '\t'
+            
 
             count = 0
             # Zero or more statements in the body.
@@ -750,7 +758,11 @@ class Parser:
             if count == 0:
                 self.emitter.emitLine(self.indentation + "pass")
             self.match(TokenType.CURLYBRACKETRIGHT)
-            self.indentation[:-1]
+
+            if hasStep:
+                self.indentation = self.indentation[:-1]
+
+            self.indentation = self.indentation[:-1]
 
 
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
@@ -1549,3 +1561,8 @@ class Parser:
             else:
                 counter = counter + 1
         return False
+
+    def changeStepVar(self):
+        # stepVar is iX where X is the value that changes everytime a new step variable is needed
+        newInteger = int(self.stepVar[1:]) + 1
+        self.stepVar = "i" + str(newInteger)
