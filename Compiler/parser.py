@@ -770,40 +770,63 @@ class Parser:
             print("STATEMENT - BLINK")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
-            if self.isListIdent(procedure):
+            self.currentLineText = self.indentation + "out_aux.blinkLed("
+            if self.checkToken(TokenType.NUMBER):
+                    self.currentLineText += self.curToken.text + ", "
+                    self.nextToken()
+            self.match(TokenType.COMA)
+            if self.checkToken(TokenType.NUMBER):
+                    self.currentLineText += self.curToken.text + ", "
+                    self.nextToken()
+            self.match(TokenType.COMA)
+            if self.checkToken(TokenType.NUMBER):
+                    self.currentLineText += self.curToken.text + ", "
+                    self.nextToken()
+            self.match(TokenType.COMA)
+            self.match(TokenType.APOST)
+            if self.checkToken(TokenType.Mil) or self.checkToken(TokenType.Seg) or self.checkToken(TokenType.Min):
+                if self.checkToken(TokenType.Mil):
+                    self.currentLineText += "\"Mil\"" + ", "
+                elif self.checkToken(TokenType.Seg):
+                    self.currentLineText += "\"Seg\"" + ", "
+                elif self.checkToken(TokenType.Min):
+                    self.currentLineText += "\"Min\"" + ", "
                 self.nextToken()
-                self.squareBrackets(self.tempIdent, procedure)
-                self.match(TokenType.COMA)
-                if self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
-                    self.nextToken()
-                else:
-                    self.abort("Invalid identifier: " + self.curToken.text)
-                self.match(TokenType.COMA)
                 self.match(TokenType.APOST)
-                if self.checkToken(TokenType.Mil) or self.checkToken(TokenType.Seg) or self.checkToken(TokenType.Min):
-                    self.nextToken()
-                    self.match(TokenType.APOST)
-                    self.match(TokenType.COMA)
-                    self.checkLstElmnt()
-                    self.match(TokenType.ROUNDBRACKETRIGHT)
-                else:
-                    self.abort("Invalid time unit: "+self.curToken.text)
+                self.match(TokenType.COMA)
+                self.checkLstElmnt()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.emitter.emitLine(self.currentLineText + ")")
+                self.currentLineText = ""
+            else:
+                self.abort("Invalid time unit: "+self.curToken.text)
         
         #Delay statement: Delay(5, "Mil")
         elif self.checkToken(TokenType.Delay):
             print("STATEMENT - DELAY")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
+            self.currentLineText += self.indentation + "out_aux.delay("
             if self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
+                    self.currentLineText += self.curToken.text + ", "
                     self.nextToken()
             else:
                 self.abort("Invalid identifier: " + self.curToken.text)
             self.match(TokenType.COMA)
             self.match(TokenType.APOST)
             if self.checkToken(TokenType.Mil) or self.checkToken(TokenType.Seg) or self.checkToken(TokenType.Min):
+                if self.checkToken(TokenType.Mil):
+                    self.currentLineText += "\"Mil\"" + ")"
+                elif self.checkToken(TokenType.Seg):
+                    self.currentLineText += "\"Seg\"" + ")"
+                elif self.checkToken(TokenType.Min):
+                    self.currentLineText += "\"Min\"" + ")"
                 self.nextToken()
                 self.match(TokenType.APOST)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
             else:
                 self.abort("Invalid time unit: "+self.curToken.text)
 

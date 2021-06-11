@@ -23,7 +23,9 @@ Procedure Main ()
 
     PrintLedX("R", 0, listvar);
 
+    Blink(1, 2, 5, "Min", true);
 
+    Delay(4, "Min");
 
 
 };
