@@ -1016,8 +1016,7 @@ class Parser:
     # comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
     def comparison(self, procedure):
         print("COMPARISON")
-
-        self.expression(procedure)
+        self.isIdentfier(procedure)
         # Must be at least one comparison operator and another expression.
         if self.isComparisonOperator():
             self.nextToken()
@@ -1125,7 +1124,7 @@ class Parser:
             self.currentLineText += self.curToken.text
             self.nextToken()
 
-        elif self.checkToken(TokenType.IDENT):
+        elif self.checkToken(TokenType.IDENT): 
             self.tempIdent = self.curToken.text
             self.currentLineText += self.tempIdent
             if self.symbolExists(self.tempIdent, self.tempProcedure):
@@ -1158,16 +1157,63 @@ class Parser:
 
         else:
             # Error!
-            self.abort("Unexpected token at " + self.curToken.text)  
-    
+            self.abort("Unexpected token at " + self.curToken.text)
+
+    def isIdentfier(self, procedure):
+        print("Comparsion identifier")
+        if self.checkToken(TokenType.IDENT): 
+            self.tempIdent = self.curToken.text
+            self.currentLineText += self.tempIdent
+            if self.symbolExists(self.tempIdent, self.tempProcedure):
+                self.nextToken()
+                self.squareBracketsComp(self.tempIdent, procedure)
+            else:
+                 self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
+        else:
+            # Error!
+            self.abort("Unexpected token at " + self.curToken.text)
+
+    #checks for square bracktes in identifiers from comparisons
+    def squareBracketsComp(self, identifier, procedure):
+        size = self.getSymbolValue(identifier)
+        if self.checkToken(TokenType.SQRBRACKETLEFT):
+            print("SQUARE BRACKETS")
+            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: 
+                self.nextToken()
+                if self.checkToken(TokenType.DOUBLEDOT):#column: listvar[:,5]
+                    self.match(TokenType.DOUBLEDOT)
+                    self.match(TokenType.COMA)
+                    
+                    size = self.getSymbolValue(identifier)
+                    self.inRange(size, self.tempProcedure) 
+                    self.match(TokenType.SQRBRACKETRIGHT)
+
+                elif self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT): #simple id listvar[0]
+                    size = self.getSymbolValue(identifier)
+                    num1 = 0
+
+                    if self.checkToken(TokenType.NUMBER):
+                        num1 = int(self.curToken.text)
+                    elif self.checkToken(TokenType.IDENT) and self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure):
+                        num1 = self.getSymbolValue(self.curToken.text)
+                    else:
+                        self.abort("Trying to access an invalid identifier: " +  self.curToken.text)
+                    self.inRange(size, self.tempProcedure)
+                    self.match(TokenType.SQRBRACKETRIGHT)
+                else:
+                    self.abort("Invalid range") 
+
+            else:
+                self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
+
     #squareBrackets ::= "[" ( expression {":" number} | ":" "," number) "]"
     def squareBrackets(self, identifier, procedure):
         size = self.getSymbolValue(identifier)
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             print("SQUARE BRACKETS")
-            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: #column: listvar[:,5]
+            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: 
                 self.nextToken()
-                if self.checkToken(TokenType.DOUBLEDOT):
+                if self.checkToken(TokenType.DOUBLEDOT):#column: listvar[:,5]
                     self.match(TokenType.DOUBLEDOT)
                     self.match(TokenType.COMA)
                     
@@ -1383,7 +1429,7 @@ class Parser:
                         elif self.checkToken(TokenType.SQRBRACKETRIGHT):
                             rows = rows+1
                             self.currentLineText += "]"
-                            break;
+                            break
                         else:
                             self.abort("Invalidad token: " + self.curToken.text)
                     
@@ -1404,7 +1450,7 @@ class Parser:
                         elif self.checkToken(TokenType.SQRBRACKETRIGHT):
                             rows = rows + 1
                             self.currentLineText += "]"
-                            break;
+                            break
                         else:
                             self.abort("Invalidad token: " + self.curToken.text)
                     
@@ -1431,7 +1477,7 @@ class Parser:
 
             #Validation of a list
             else:
-                elements = 0;
+                elements = 0
                 if curSymbol != TokenType.LIST and curSymbol != None:
                     self.abort("Attempting to assign a LIST to a " + curSymbol.name + " typed variable: " + self.tempIdent)
 

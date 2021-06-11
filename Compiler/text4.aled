@@ -1,0 +1,13 @@
+Procedure Main ()
+{
+    listvar = [true, false, true, false, false, false, true, true];
+    Call function2(true, false);
+};
+
+Procedure function2 (param, param2)
+{
+    If listvar[:,6] == true
+    {
+        sum3 = 2;
+    };
+};
