@@ -667,34 +667,43 @@ class Parser:
         elif self.checkToken(TokenType.For):
             print("STATEMENT-FOR")
             self.nextToken()
+            self.currentTextLine = self.indentation + "for "
 
             if self.checkToken(TokenType.IDENT):
                 self.tempIdent = self.curToken.text
                 if self.sintaxVar(self.tempIdent):
+                    self.currentTextLine += self.curToken.text + " in "
                     self.nextToken()
                     self.match(TokenType.In)
 
                     #Checks if the iterable is a list
                     if self.isListIdent(procedure):
+                        self.currentTextLine += self.curToken.text
                         listLength = self.getSymbolValue(self.tempIdent)
                         self.nextToken()
                         if self.checkToken(TokenType.SQRBRACKETLEFT):
+                            self.currentTextLine += '['
                             self.nextToken()
                             index1 = 0
                             if self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT):
                                 if self.checkToken(TokenType.NUMBER):
+                                    self.currentTextLine += self.curToken.text
                                     index1 = int(self.curToken.text)
                                 elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure):
+                                    self.currentTextLine += self.curToken.text
                                     index1 = self.getSymbolValue(self.curToken.text)
                                 else:
                                     self.abort("Trying to access invalid identifier: " + self.curtoken.text)
                                 self.nextToken()
                                 self.match(TokenType.DOUBLEDOT)
+                                self.currentTextLine += ':'
                                 index2 = 0
                                 if self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT):
                                     if self.checkToken(TokenType.NUMBER):
+                                        self.currentTextLine += self.curToken.text
                                         index2 = int(self.curToken.text)
-                                    elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure):
+                                    elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure)==TokenType.NUMBER:
+                                        self.currentTextLine += self.curToken.text
                                         index2 = self.getSymbolValue(self.curToken.text)
                                     else:
                                         self.abort("Trying to access invalid identifier: " + self.curtoken.text)
@@ -703,11 +712,13 @@ class Parser:
                                     self.abort("Invalid token: " + self.curToken.text)
                                 self.nextToken()
                                 self.match(TokenType.SQRBRACKETRIGHT)
+                                self.currentTextLine += ']'
                             else:
                                 self.abort("Invalid token: " + self.curToken.text)
 
                     #Checks if the iterable is a number 
                     elif self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
+                        self.currentTextLine += self.curToken.text
                         self.nextToken()
                     else:
                         self.abort("Invalid iterable: " + self.curToken.text)
@@ -718,6 +729,9 @@ class Parser:
                             self.nextToken()
                         else:
                             self.abort("Invalid identifier: "+ self.curToken.text)
+                    
+                    self.emitter.emitLine(self.currentTextLine)
+                    self.currentTextLine = ""
                         
                 else:
                     self.abort("Invalid variable name: "+ self.tempIdent)
@@ -725,12 +739,18 @@ class Parser:
                 self.abort("Invalid statement: " + self.tempIdent)
             
             self.match(TokenType.CURLYBRACKETLEFT)
+            self.indentation += '\t'
 
+            count = 0
             # Zero or more statements in the body.
             while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+                count += 1
                 self.statement(procedure)
 
+            if count == 0:
+                self.emitter.emitLine(self.indentation + "pass")
             self.match(TokenType.CURLYBRACKETRIGHT)
+            self.indentation[:-1]
 
 
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);

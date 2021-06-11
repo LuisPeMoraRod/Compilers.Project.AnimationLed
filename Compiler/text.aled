@@ -19,7 +19,10 @@ Procedure Main ()
     listvar.delete(2);
     listvarL = Len(listvar);
     
-        
+    For elem In listvar
+    {
+    };
+
 };
 
 Procedure function2 (param, param2)
@@ -41,4 +44,5 @@ Procedure function ()
     matrix[:,1].Neg;
     matrix.insert([true, false], 0, 0);
     matrix.delete(0, 1);
+    
 };
