@@ -619,7 +619,7 @@ class Parser:
                                 self.currentTextLine = self.indentation
                                 self.currentTextLine += "out_aux.deleteMatrixRow(" + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
-                                self.currentTectLine = ""
+                                self.currentTetLine = ""
                             elif operation == 1:
                                 self.checkColumns(matrixColumns, index)
                                 self.deleteColumns(matrix, procedure)
@@ -810,39 +810,63 @@ class Parser:
         #PrintLed statement
         elif self.checkToken(TokenType.PrintLed):
             print("STATEMENT - PrintLed")
+            self.currentLineText = self.indentation + "out_aux.printLed("
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
+            self.currentLineText += self.curToken.text + ", "
             self.matchColRow(procedure)
             self.match(TokenType.COMA)
+            self.currentLineText += self.curToken.text + ", "
             self.matchColRow(procedure)
             self.match(TokenType.COMA)
             self.checkLstElmnt()
             self.match(TokenType.ROUNDBRACKETRIGHT)
+            self.currentLineText += ")"
+
+            self.emitter.emitLine(self.currentLineText)
+            self.currentLineText = ""
 
         #PrintLedX statement
         elif self.checkToken(TokenType.PrintLedX):
             print("STATEMENT - PrintLedX")
+            self.currentLineText = self.indentation + "out_aux.printLedX("
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.match(TokenType.APOST)
             if self.checkToken(TokenType.R) or self.checkToken(TokenType.C) or self.checkToken(TokenType.M):
                 objType = self.curToken.text
+
+                if objType == "M":
+                    self.currentLineText += "\"M\", "
+                elif objType == "R":
+                    self.currentLineText += "\"R\", "
+                elif objType == "C":
+                    self.currentLineText += "\"C\", "
+
                 self.nextToken()
                 self.match(TokenType.APOST)
                 self.match(TokenType.COMA)
+                self.currentLineText += self.curToken.text + ", "
                 self.matchColRow(procedure)
                 self.match(TokenType.COMA)
+
                 if objType == "M":
+                    self.currentLineText += "\"M\", "
                     if self.isMatrixIdent(procedure):
+                        self.currentLineText += self.curToken.text + ")"
                         self.nextToken()
                     else:
                         self.match(TokenType.IDENT)
                 else:
                     if self.isListIdent(procedure):
+                        self.currentLineText += self.curToken.text + ")"
                         self.nextToken()
                     else:
                         self.match(TokenType.IDENT)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
             
             else:
                 self.abort("Invalid object type: " + self.curToken.text)

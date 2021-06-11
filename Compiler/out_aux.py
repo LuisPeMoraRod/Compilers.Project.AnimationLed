@@ -1,3 +1,28 @@
+#####################################
+# Led control variables and functions
+#####################################
+
+ledMatrix = [[False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False],
+            [False, False, False, False, False, False, False, False]]
+
+ledDecimalList = [0, 0, 0, 0, 0, 0, 0, 0]
+
+# Function that updates the decimal list based on the ledMatrix
+def updateDecimalList():
+    # Led matrix is transformed intro its equivalent list of binary number
+    # The the binary number is passed into a decimal number that represents a row
+    pass
+
+def sendLedInstructions():
+    # Sends the ledDecimelList to the Arduino
+    pass
+
 #############################
 ## LIST Built in functions ##
 #############################
@@ -104,11 +129,62 @@ def insertMatrixColumnAtPos(matrix, column, pos):
     # Inserts a column into a matrix at the position given
     pass
 
+# Deletes the indicated row of the given matrix
+# used for matrix.delete(rowNumber, 0)
 def deleteMatrixRow(matrix, pos):
+    # Deletes the indicated row of the given matrix
     pass
 
+# Deletes the indicated column of the given matrix 
+# used for matrix.delete(columnNumber, 1)
 def deleteMatrixColumn(matrix, pos):
+    # Deletes the indicated column of the given matrix
     pass
+
+
+######################################
+## PrintLed and PrintLedX functions ##
+######################################
+
+# changes the value of a given position in ledMatrix
+def printLed(column, row, value):
+    # Changes the ledMatrix[row][column] into valule
+    # Then calls the updateDecimalList to update the list
+    # Last, it calls the sendLedIntruction with the decimal list
+    pass
+
+# changes the value of a given row, column or matrix elements in ledMatrix
+# inputs:
+# ObjectType: specifies if the object to changes is a row ("R"), column (#C) or the matrix ("M")
+# pos: in case of row or column it changes the position given
+# array: the array with the new values to change
+def printLedX(ObjectType, pos, array):
+    pass
+
+###############################
+## Blink and Delay functions ##
+###############################
+
+# this function makes one led of the ledMatrix blink with a given frequency
+# until it receives a false state for the same led
+# inputs:
+# row and column indicate the position of the led
+# delay determines the amount of time between bliks
+# timeRange indicates the units of the time range it could be in 
+# seconds ("Sec"), miliseconds ("Mil") or minute ("Min")
+def blinkLed(row, column, delay, timeRange, state):
+    # This has to be done in a different thread
+    # Change the ledMatrix with the given time
+    pass
+
+# this function makes a delay between every instructions, it doesn't need a thread
+# it has to stop the entire program.
+# inputs:
+# time -> amount of time of the delay
+# unit -> units of the emount of time, it could be seconds ("Sec"), miliseconds ("Mil") or minute ("Min")
+def delay(time, unit):
+    pass
+
 
 
 list = [True, True, True]
