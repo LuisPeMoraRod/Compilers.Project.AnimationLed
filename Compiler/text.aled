@@ -2,11 +2,11 @@
 Procedure Main ()
 {
     ##Esto es un comentario afuera
- ##cdcdc
+
     sum1 = 8 + 9 *20%6;
-    list5 = list(range(5, true));
+    list5 = list(range(5, true)); 
     foo=1; ##cdcdc
-    Call function();
+    Call function(); 
     boolvar = true;
     var1, var2, var3 = 1 , true , [true, false, true, false, true, false];
     listvar = [true, false, true, false, boolvar, false, true, true];

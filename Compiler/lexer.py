@@ -42,6 +42,7 @@ class Lexer:
             if self.peek() == "#":
                 while self.curChar != '\n':
                     self.nextChar()
+                self.curLine +=1
                 self.nextChar()
 
     # Helper function to skip comments (this allows the user to place them everywhere)
@@ -56,6 +57,7 @@ class Lexer:
         while self.isCommentOrWhiteSpace():
             self.skipComment()
             self.skipWhitespace()
+            
 
         token = None
 
