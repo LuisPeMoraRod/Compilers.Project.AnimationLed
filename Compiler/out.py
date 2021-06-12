@@ -21,15 +21,19 @@ out_aux.printLedX("R", 0, listvar)
 out_aux.blinkLed(1, 2, 5, "Min", True)
 out_aux.delay(4, "Min")
 def function2(param,param2):
-	foo2=foo
-	if listvar>=True:
-		sum3=2
+        foo2=foo
+        if listvar>=True:
+                sum3=2
+        matrix2=[[True, False], [boolvar, False]]
+        out_aux.modifyMatrixRow(matrix2, 1)
+        out_aux.modifyMatrixElement(matrix2, 1, 1)
+        out_aux.modifyMatrixColumn(matrix2, 1)
 def function():
-	function2(true,false)
-	foo2=foo
-	matrix=[[True, False], [boolvar, False]]
-	out_aux.modifyMatrixRow(matrix, )
-	out_aux.modifyMatrixElement(matrix, , 1)
-	out_aux.modifyMatrixColumn(matrix, 1)
-	out_aux.insertMatrixRowAtPos(matrix,[true,false],0)
-	out_aux.deleteMatrixColumn(0)
+        function2(1,2)
+        foo2=foo
+        matrix=[[True, False], [boolvar, False]]
+        out_aux.modifyMatrixRow(matrix, 1)
+        out_aux.modifyMatrixElement(matrix, 1, 1)
+        out_aux.modifyMatrixColumn(matrix, 1)
+        out_aux.insertMatrixRowAtPos(matrix,[true,false],0)
+        out_aux.deleteMatrixColumn(0)
