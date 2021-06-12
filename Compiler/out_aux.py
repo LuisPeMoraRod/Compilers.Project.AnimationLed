@@ -1,3 +1,6 @@
+import time
+import threading
+
 #####################################
 # Led control variables and functions
 #####################################
@@ -10,6 +13,15 @@ ledMatrix = [[False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False]]
+
+isBlinkingMatrix = [[False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False],
+                    [False, False, False, False, False, False, False, False]]
 
 ledDecimalList = [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -151,15 +163,47 @@ def printLed(column, row, value):
     # Changes the ledMatrix[row][column] into valule
     # Then calls the updateDecimalList to update the list
     # Last, it calls the sendLedIntruction with the decimal list
-    pass
+    ledMatrix[row][column] = value
+    updateDecimalList()
+    sendLedInstructions()
 
 # changes the value of a given row, column or matrix elements in ledMatrix
 # inputs:
-# ObjectType: specifies if the object to changes is a row ("R"), column (#C) or the matrix ("M")
+# ObjectType: specifies if the object to changes is a row ("R"), column ("C") or the matrix ("M")
 # pos: in case of row or column it changes the position given
 # array: the array with the new values to change
-def printLedX(ObjectType, pos, array):
-    pass
+def printLedX(objectType, pos, array):
+    if objectType == "R": # Row case
+        limit = min(8, len(array))
+        j = 0
+        while j < 8:
+            if j < limit:
+                ledMatrix[pos][j] = array[j]
+            else: # False of the given array is longer than 8 elements
+                ledMatrix[pos][j] = False
+            j += 1
+    elif objectType == "C":
+        limit = min(8, len(array))
+        i = 0
+        while i < 8:
+            if i < limit:
+                ledMatrix[i][pos] = array[i]
+            else: # False of the given array is longer than 8 elements
+                ledMatrix[i][pos] = False
+            i += 1
+    else:
+        limitRow = min(8, len(array))
+        limitColumn = min(8, len(array[0]))
+        i = 0
+        while i < 8:
+            j = 0
+            while j < 8:
+                if i < limitRow and j < limitColumn:
+                    ledMatrix[i][j] = array[i][j]
+                else: # False of the given array is longer than 8 elements
+                    ledMatrix[i][j] = False
+                j += 1
+            i += 1
 
 ###############################
 ## Blink and Delay functions ##
@@ -175,7 +219,27 @@ def printLedX(ObjectType, pos, array):
 def blinkLed(row, column, delay, timeRange, state):
     # This has to be done in a different thread
     # Change the ledMatrix with the given time
-    pass
+    if state:
+        threading.Thread(target=blinkLed_aux, args=(row, column, delay, timeRange)).start
+    else:
+        isBlinkingMatrix[row][column] = False
+
+# blink led auxiliar function to keep everything out of the main thread
+def blinkLed_aux(row, column, delay, timeRange):
+    factor = 1 # In case of seconds
+    if timeRange == "Min":
+        factor *= 60
+    elif timeRange == "Mil":
+        factor /= 1000
+    while isBlinkingMatrix[row][column]: # blink until the matrix element becomes false
+        if ledMatrix[row][column]:
+            printLed(row, column, False)
+            ledMatrix[row][column] = False
+        else:
+            printLed(row, column, True)
+            ledMatrix[row][column] = True
+        time.sleep(delay*factor)
+
 
 # this function makes a delay between every instructions, it doesn't need a thread
 # it has to stop the entire program.
@@ -183,7 +247,12 @@ def blinkLed(row, column, delay, timeRange, state):
 # time -> amount of time of the delay
 # unit -> units of the emount of time, it could be seconds ("Sec"), miliseconds ("Mil") or minute ("Min")
 def delay(time, unit):
-    pass
+    factor = 1 # in case time is in seconds
+    if unit == "Min":
+        factor *= 60
+    elif unit == "Mil":
+        factor /= 1000
+    time.sleep(time*factor)
 
 
 
