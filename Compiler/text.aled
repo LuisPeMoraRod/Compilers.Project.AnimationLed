@@ -37,6 +37,11 @@ Procedure function2 (param, param2)
     {
         sum3 = 2;
     };
+
+    matrix2 = [[true, false], [boolvar, false]];
+    matrix2[1].Neg;
+    matrix2[1,1].Neg;
+    matrix2[:,1].Neg;
 };
 
 Procedure function ()

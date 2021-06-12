@@ -196,7 +196,12 @@ class Parser:
             else:
                 self.paramsCall(self.tempParameterCall)
                 for param in self.tempParameterCall:
-                    self.currentLineText += param + ","
+                    if param == "false":
+                        self.currentLineText += "False,"
+                    elif param == "true":
+                        self.currentLineText += "True,"
+                    else:
+                        self.currentLineText += param + ","
                 self.currentLineText = self.currentLineText[:-1]
                 self.currentLineText += ')'
                 self.emitter.emitLine(self.currentLineText)
@@ -372,6 +377,7 @@ class Parser:
             
             #Checks if the token is a number:
             if self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT):
+                tempMatrixRow = self.curToken.text
                 rowIndex = 0
                 if self.checkToken(TokenType.NUMBER):
                     rowIndex = int(self.curToken.text)
@@ -548,7 +554,12 @@ class Parser:
                     #checks if the element is a new list
                     elif self.checkToken(TokenType.SQRBRACKETLEFT):
                         self.nextToken()
-                        tempList += "[" + self.curToken.text
+                        if self.curToken.text == "true":
+                            tempList += "[True"
+                        elif self.curToken.text == "false":
+                            tempList += "[False"
+                        else:
+                            tempList += "[" + self.curToken.text
                         self.checkLstElmnt() #first element
                         print("Adding to the list: " + self.currentTextLine)
                         elements = 1
@@ -556,7 +567,12 @@ class Parser:
                         while not self.checkToken(TokenType.SQRBRACKETRIGHT):
                             self.match(TokenType.COMA)
                             tempList += ','
-                            tempList += self.curToken.text
+                            if self.curToken.text == "true":
+                               tempList += "True"
+                            elif self.curToken.text == "false":
+                                tempList += "False"
+                            else:
+                                tempList += self.curToken.text
                             self.checkLstElmnt()
                             print("Adding to the list: " + self.currentTextLine)
                             elements = elements + 1
