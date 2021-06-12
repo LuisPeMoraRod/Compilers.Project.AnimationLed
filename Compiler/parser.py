@@ -291,7 +291,7 @@ class Parser:
                 print(is_range)
             
             if self.checkToken(TokenType.EQ): #Validation for List modifiers e.g: listvar[3] = true; listvar[1:3] = [true, false];
-                                            #statement := IDENT squareBrackets "=" ("[" boolean listValues "]" | boolean)
+                                    #statement := IDENT squareBrackets "=" ("[" boolean listValues "]" | boolean)
                 self.match(TokenType.EQ)
                 if is_range: #range assignation: listvar[1:3] = [true, false]
                     self.match(TokenType.SQRBRACKETLEFT)
@@ -749,8 +749,9 @@ class Parser:
             hasStep = False
 
             if self.checkToken(TokenType.IDENT):
-                self.tempIdent = self.curToken.text
-                if self.sintaxVar(self.tempIdent):
+                iterable = self.curToken.text
+                if self.sintaxVar(self.curToken.text):
+                    self.addSymbol(self.curToken.text, TokenType.NUMBER, procedure, 0, None, None)
                     self.currentTextLine += self.curToken.text + " in "
                     self.nextToken()
                     self.match(TokenType.In)
@@ -835,6 +836,7 @@ class Parser:
             if count == 0:
                 self.emitter.emitLine(self.indentation + "pass")
             self.match(TokenType.CURLYBRACKETRIGHT)
+            self.deleteSymbol(iterable, procedure)
 
             if hasStep:
                 self.indentation = self.indentation[:-1]
@@ -1076,6 +1078,7 @@ class Parser:
         self.term(procedure)
         # Can have 0 or more +/- and expressions.
         while self.checkToken(TokenType.PLUS) or self.checkToken(TokenType.MINUS):
+            self.tempOperation = self.tempOperation + self.curToken.text
             if self.checkToken(TokenType.PLUS):
                 self.currentLineText += '+'
             elif self.checkToken(TokenType.MINUS):
@@ -1090,6 +1093,7 @@ class Parser:
         self.unary(procedure)
         # Can have 0 or more * / and expressions.
         while self.checkToken(TokenType.ASTERISK) or self.checkToken(TokenType.SLASH) or self.checkToken(TokenType.SLASHD):
+            self.tempOperation = self.tempOperation + self.curToken.text
             if self.checkToken(TokenType.ASTERISK):
                 self.currentLineText += '*'
             elif self.checkToken(TokenType.SLASH):
@@ -1106,6 +1110,7 @@ class Parser:
 
         # Optional unary +/-
         if self.checkToken(TokenType.PLUS) or self.checkToken(TokenType.MINUS):
+            self.tempOperation = self.tempOperation + self.curToken.text
             if self.checkToken(TokenType.PLUS):
                 self.currentLineText += '+'
             elif self.checkToken(TokenType.MINUS):
@@ -1117,6 +1122,7 @@ class Parser:
     def module(self, procedure):
         self.exp(procedure)
         while self.checkToken(TokenType.MODULE):
+            self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += '%'
             print("MODULE")
             self.nextToken()
@@ -1126,6 +1132,7 @@ class Parser:
     def exp(self, procedure):
         self.primary(procedure)
         while self.checkToken(TokenType.ASTERISKD):
+            self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += '**'
             print("EXPONENT")
             self.nextToken()
@@ -1137,23 +1144,31 @@ class Parser:
         print("PRIMARY ( \'" + self.curToken.text + "\' )")
 
         if self.checkToken(TokenType.NUMBER):
+            self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += self.curToken.text
             self.nextToken()
-
-        elif self.checkToken(TokenType.IDENT): 
+        
+        elif self.checkToken(TokenType.IDENT) and not self.isListIdent(procedure):
             self.tempIdent = self.curToken.text
             self.currentLineText += self.tempIdent
             if self.symbolExists(self.tempIdent, self.tempProcedure):
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                    self.tempOperation = self.tempOperation + str(self.getSymbolValue(self.tempIdent))
+                else:
+                    self.abort("Invalid identifier in arithmetic expression: "+ self.tempIdent)
+                    
                 self.nextToken()
                 self.squareBrackets(self.tempIdent, procedure)
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
 
         elif self.checkToken(TokenType.ROUNDBRACKETLEFT):
+            self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += '('
             self.nextToken()
             self.expression(procedure)
             print("PRIMARY ( \'" + self.curToken.text + "\' )")
+            self.tempOperation = self.tempOperation + self.curToken.text
             self.match(TokenType.ROUNDBRACKETRIGHT)
             self.currentLineText +=')'
         
@@ -1223,11 +1238,11 @@ class Parser:
                 self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
 
     #squareBrackets ::= "[" ( expression {":" number} | ":" "," number) "]"
-    def squareBrackets(self, identifier, procedure):
+    def squareBrackets(self, identifier, procedure): 
         size = self.getSymbolValue(identifier)
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             print("SQUARE BRACKETS")
-            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: 
+            if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST:
                 self.nextToken()
                 if self.checkToken(TokenType.DOUBLEDOT):#column: listvar[:,5]
                     self.match(TokenType.DOUBLEDOT)
@@ -1237,7 +1252,8 @@ class Parser:
                     self.inRange(size, self.tempProcedure) 
                     self.match(TokenType.SQRBRACKETRIGHT)
 
-                elif self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT): #range: listvar[1:6] or simple id listvar[0]
+                elif self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT): #range: listvar[1:6] or simple id listvar[0] 
+        
                     tempCurrentText1 = "out_aux.modifyList(" + identifier + ', '
                     tempCurrentText2 = "out_aux.modifyElement(" + identifier + ', '
                     size = self.getSymbolValue(identifier)
@@ -1245,21 +1261,24 @@ class Parser:
 
                     if self.checkToken(TokenType.NUMBER):
                         num1 = int(self.curToken.text)
-                    elif self.checkToken(TokenType.IDENT) and self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure):
+                    elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER: 
                         num1 = self.getSymbolValue(self.curToken.text)
                     else:
                         self.abort("Trying to access an invalid identifier: " +  self.curToken.text)
                     tempCurrentText1 += self.curToken.text + ', '
                     tempCurrentText2 += self.curToken.text + ', '
+                    
+                    
                     self.inRange(size, self.tempProcedure)
                     if self.checkToken(TokenType.DOUBLEDOT):
+            
                         self.match(TokenType.DOUBLEDOT)
                         self.currentLineText += tempCurrentText1
                         num2 = 0
 
                         if self.checkToken(TokenType.NUMBER):
                             num2 = int(self.curToken.text)
-                        elif self.checkToken(TokenType.IDENT) and self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure):
+                        elif self.checkToken(TokenType.IDENT) and self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
                             num2 = self.getSymbolValue(self.curToken.text)
                         else:
                             self.abort("Trying to access an invalid identifier: " +  self.curToken.text)
@@ -1272,6 +1291,7 @@ class Parser:
                         else:
                             self.abort("Invalid range")
                     else:
+                        
                         self.currentLineText += tempCurrentText2
                     self.match(TokenType.SQRBRACKETRIGHT)
 
@@ -1290,16 +1310,22 @@ class Parser:
             number = int(self.curToken.text)
         
         elif self.checkToken(TokenType.IDENT):
-            if self.symbolExists(self.curToken.text) and self.getSymbolType(self.curToken.text) == NUMBER:
+            
+            if self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                print("ESTA")
                 number = self.getSymbolValue(self.curToken.text)        
         else:
             self.abort("Expected NUMBER, got" + self.curToken.kind.name)
         
         if 0 <= number <= size:
-            self.match(TokenType.NUMBER)
+            self.nextToken()
+            
             return True
         else:
-                self.abort("Index: " + self.curToken.text +" out of range")
+            print("ESTA")
+            self.abort("Index: " + self.curToken.text +" out of range")
+        
+       
        
     
     #Checks if symbol already exists
@@ -1516,13 +1542,22 @@ class Parser:
                 self.tempValue = elements #init size of list (could be changed with insert or del built-in functions)
         
         elif self.checkToken(TokenType.IDENT) and self.curToken.text=="list":
+            listIdent = self.tempIdent
             self.nextToken()
+            elements = 0
             self.match(TokenType.ROUNDBRACKETLEFT)
             if self.checkToken(TokenType.IDENT) and self.curToken.text == "range":
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 self.currentLineText += "out_aux.createList("
-                self.matchNumber(procedure)
+                if self.checkToken(TokenType.NUMBER):
+                    elements = int(self.curToken.text)
+                elif self.checkToken(TokenType.IDENT):
+                    if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
+                        elements = self.getSymbolValue(self.curToken.text)
+                else:
+                    self.abort("Invalid identifier: "+ self.curToken.text)
+                self.nextToken()
                 self.match(TokenType.COMA)
                 self.currentLineText += ', '
                 self.checkLstElmnt()
@@ -1533,7 +1568,19 @@ class Parser:
                 self.currentLineText = ""
             else:
                 self.abort("Expected the word range, got: " + self.curToken.text)
-
+            
+            self.tempIdent = listIdent
+            self.tempType = TokenType.LIST
+            self.tempValue = elements
+        
+        elif self.checkToken(TokenType.Len):
+            self.nextToken()
+            self.match(TokenType.ROUNDBRACKETLEFT)
+            if self.isListIdent(procedure):
+                self.nextToken()
+                self.match(TokenType.ROUNDBRACKETRIGHT)
+            else:
+                self.abort("Invalid token or identifier: " + self.curToken.text)
         
         else: # aritmetic expression
             if curSymbol != TokenType.NUMBER and curSymbol != None:
@@ -1541,16 +1588,58 @@ class Parser:
 
             ident = self.tempIdent
             self.tempProcedure = procedure
-            self.expression(procedure)
-            self.emitter.emitLine(self.currentLineText)
-            self.currentLineText = ""
-            self.tempType = TokenType.NUMBER
-            self.tempIdent = ident
-            self.tempValue = None
+
+            if self.getSymbolType(self.curToken.text, procedure) == TokenType.MATRIX:
+                self.tempType = TokenType.MATRIX
+                self.tempIdent = ident
+                self.tempValue = None
+                self.tempColumns = self.getMatrixColumns(self.curToken.text)
+                self.tempRows = self.getMatrixRows(self.curToken.text)
+                self.nextToken()
+
+            elif self.getSymbolType(self.curToken.text, procedure) == TokenType.LIST:
+                ident = self.curToken.text
+                self.nextToken()
+                if self.checkToken(TokenType.SQRBRACKETLEFT):
+                    self.nextToken()
+                    if self.checkToken(TokenType.NUMBER):
+                        index = int(self.curToken.text)
+                        if index>self.getSymbolValue(ident)-1 and index>=0:
+                            self.abort("Index out of range")
+                        else:
+                            self.nextToken()
+                        if self.checkToken(TokenType.DOUBLEDOT):
+                            self.nextToken()
+                            if self.checkToken(TokenType.NUMBER):
+                                index2 = int(self.curToken.text)
+                                if index2>=self.getSymbolValue(ident) - 1 and index2 >= index:
+                                    self.nextToken()
+                                    self.tempType = TokenType.LIST
+                                    self.tempValue = index2 - index
+
+                                else:
+                                    print(index2)
+                                    self.abort("Invalid range")
+                            else:
+                                self.abort("Expected a number, got: " + self.curToken.text)
+                        elif self.checkToken(TokenType.SQRBRACKETRIGHT):
+                            self.tempType = TokenType.NUMBER
+                            self.tempIdent = ident
+                            self.tempValue = None
+                        self.match(TokenType.SQRBRACKETRIGHT)
+            
+            else:
+                self.expression(procedure)
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
+                self.tempType = TokenType.NUMBER
+                self.tempIdent = ident
+                self.tempValue = eval(self.tempOperation)
 
         if not self.symbolExists(self.tempIdent, procedure):
             #print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue, self.tempRows, self.tempColumns)
+            self.tempOperation = ""
 
     #Checks if token is a list identifier 
     def isListIdent(self, procedure):
