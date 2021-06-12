@@ -401,13 +401,11 @@ class Parser:
                         if self.checkToken(TokenType.SQRBRACKETLEFT):
                             self.nextToken()
                             self.checkLstElmnt() #first element
-                            print("Adding to the list: " + self.currentTextLine)
                             elements = 1
             
                             while not self.checkToken(TokenType.SQRBRACKETRIGHT):
                                 self.match(TokenType.COMA)
                                 self.checkLstElmnt()
-                                print("Adding to the list: " + self.currentTextLine)
                                 elements = elements + 1
                             
                             if elements == self.getMatrixColumns(tempMatrixIdent):
@@ -441,6 +439,7 @@ class Parser:
                             else:
                                 self.abort("Matrix " + self.curToken.text + " dimensions doesn't match " + tempMatrixIdent)
                         
+                        #A type list variable is given
                         elif self.isListIdent(procedure):
                             listSize = self.getSymbolValue(self.curToken.text)
 
@@ -461,8 +460,62 @@ class Parser:
                         self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
                         self.nextToken()
                         self.match(TokenType.SQRBRACKETRIGHT)
+
+                        if self.checkToken(TokenType.EQ):
+                            self.nextToken()
+
+                            #A specific value is given
+                            if self.checkToken(TokenType.true) or self.checkToken(TokenType.false) or self.getSymbolType(self.curToken.text, procedure) == TokenType.BOOLEAN:
+                                self.nextToken()
+                            #A list element is given    
+                            elif self.isListIdent(procedure):
+                                size = self.getSymbolValue(self.curToken.text)
+                                self.nextToken()
+                                self.match(TokenType.SQRBRACKETLEFT)
+                                if self.checkToken(TokenType.NUMBER):
+                                    index = int(self.curToken.text)
+                                elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                                    index = self.getSymbolValue(self.curToken.text)  
+                                else:
+                                    self.abort("Trying to access an invalid identifier: "+ self.curToken.text) 
+                                
+                                self.checkRows(size, index);
+                                self.nextToken()
+                                self.match(TokenType.SQRBRACKETRIGHT)
+                            #A matrix element is given
+                            elif self.isMatrixIdent(procedure):
+                                m2Columns = self.getMatrixColumns(self.curToken.text)
+                                m2Rows = self.getMatrixRows(self.curToken.text)
+
+                                self.nextToken()
+                                self.match(TokenType.SQRBRACKETLEFT)
+                                if self.checkToken(TokenType.NUMBER):
+                                    rowIndex = int(self.curToken.text)
+                                elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                                    rowIndex = self.getSymbolValue(self.curToken.text)  
+                                else:
+                                    self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
+                                if rowIndex < m2Rows:
+                                    self.nextToken()
+                                else:
+                                    self.abort("Trying to access an index out of range")
+                                self.match(TokenType.COMA)
+                                if self.checkToken(TokenType.NUMBER):
+                                    columnIndex = int(self.curToken.text)
+                                elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                                    columnIndex = self.getSymbolValue(self.curToken.text)  
+                                else:
+                                    self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
+                                if columnIndex < m2Columns:
+                                    self.nextToken()
+                                else:
+                                    self.abort("Trying to access an index out of range")
+                                self.match(TokenType.SQRBRACKETRIGHT)
+                            else:
+                                self.abort("Invalid token or identifier: " + self.cutToken.text)
                     else:
                         self.abort("Expected an int, got: "+ self.curToken.text)
+
                 else:
                     self.abort("Expected an int or :, got: "+ self.curToken.text)
 
@@ -489,13 +542,77 @@ class Parser:
                 self.match(TokenType.COMA)
 
                 if self.checkToken(TokenType.NUMBER):
-                    tempMatrixColumn = self.curToken.text
                     columnIndex = int(self.curToken.text)
-                    self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
-                    self.nextToken()
-                    self.match(TokenType.SQRBRACKETRIGHT)
+                elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                    columnIndex = self.getSymbolValue(self.curToken.text)  
                 else:
-                    self.abort("Expected an int, got: "+ self.curToken.text)
+                    self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
+                    
+                columnIndex = int(self.curToken.text)
+                self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
+                self.nextToken()
+                self.match(TokenType.SQRBRACKETRIGHT)
+
+                if self.checkToken(TokenType.EQ):
+                        self.nextToken()
+
+                        #A list is given
+                        if self.checkToken(TokenType.SQRBRACKETLEFT):
+                            self.nextToken()
+                            self.checkLstElmnt() #first element
+                            elements = 1
+            
+                            while not self.checkToken(TokenType.SQRBRACKETRIGHT):
+                                self.match(TokenType.COMA)
+                                self.checkLstElmnt()
+                                elements = elements + 1
+                            
+                            if elements == self.getMatrixRows(tempMatrixIdent):
+                                self.match(TokenType.SQRBRACKETRIGHT)
+                            else:
+                                self.abort("The size of the list doesn't match the matrix dimensions")
+                        
+                        #A matrix column is given
+                        elif self.isMatrixIdent(procedure):
+                            m2Rows = self.getMatrixRows(self.curToken.text)
+                            m2Columns = self.getMatrixColumns(self.curToken.text)
+                            if m2Rows== self.getMatrixRows(tempMatrixIdent):
+                                self.nextToken()
+                                self.match(TokenType.SQRBRACKETLEFT)
+                                self.match(TokenType.DOUBLEDOT)
+                                self.match(TokenType.COMA)
+
+                                if self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT):
+                                    columnIndex = 0
+                                    if self.checkToken(TokenType.NUMBER):
+                                        columnIndex = int(self.curToken.text)
+                                    elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                                        columnIndex = self.getSymbolValue(self.curToken.text)
+                                    
+                                    else:
+                                        self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
+                                    
+                                    self.checkColumns(m2Columns, columnIndex)
+                                    self.nextToken()
+                                    self.match(TokenType.SQRBRACKETRIGHT);
+                                else:
+                                    self.abort("Invalid token or identifier: " + self.curToken.text)
+                            else:
+                                self.abort("Matrix " + self.curToken.text + " dimensions doesn't match " + tempMatrixIdent)
+                        
+                        #A type list variable is given
+                        elif self.isListIdent(procedure):
+                            listSize = self.getSymbolValue(self.curToken.text)
+
+                            if listSize == self.getMatrixRows(tempMatrixIdent):
+                                self.nextToken()
+                            else:
+                                self.abort("List " + self.curToken.text + " doesn't match matrix dimensions")
+                        
+                        else:
+                            self.abort("Invalid token or identifier: " + self.curToken.text)
+                
+
             
             else:
                 self.abort("Expected an int or :, got: "+ self.curToken.text)
@@ -1725,12 +1842,12 @@ class Parser:
     
     #Checks if the index that is being tried to access is in a valid column range
     def checkRows(self, matrixRows, rowAccesed):
-        if matrixRows - 1 < rowAccesed:
+        if matrixRows < rowAccesed:
             self.abort("Trying to access a row out of range")
     
     #Checks if the index that is being tried to access is in a valid column range
     def checkColumns(self, matrixColumns, columnAccesed):
-        if matrixColumns - 1 < columnAccesed:
+        if matrixColumns < columnAccesed:
             self.abort("Trying to access a column out of range")
     
     #Increases the amount of rows of a specific matrix
