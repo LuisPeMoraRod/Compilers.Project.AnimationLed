@@ -47,9 +47,9 @@ Procedure Main ()
     list1[1].F;
     list1[1:3].F;
 
-    Blink(list1[1],5, "Seg", true);
-    Blink(list1[1],5, "Mil", true);
-    Blink(list1[1],5, "Min", true);
+    ##Blink(list1[1],5, "Seg", true);
+    ##Blink(list1[1],5, "Mil", true);
+    ##Blink(list1[1],5, "Min", true);
 
     Delay( 5,  "Mil");
     Delay( 5,  "Min");
@@ -81,8 +81,9 @@ Procedure Main ()
         var7 = 2;
     };
 
-    For i In 5{
-        var7 = 2;
+    For i In list1{
+        list1[i];
+
     };
 
     matrix1.insert([true, false, true, true],  0);
