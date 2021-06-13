@@ -64,6 +64,8 @@ def sendLedInstructions():
     message = str(ledDecimalList)
     serialcom.write(message.encode())
 
+    time.sleep(1.25)
+
 
 #############################
 ## LIST Built in functions ##
@@ -223,7 +225,9 @@ def printLed(column, row, value):
     # Last, it calls the sendLedIntruction with the decimal list
     ledMatrix[row][column] = value
     updateDecimalList()
-    sendLedInstructions()
+    
+    if value:
+        sendLedInstructions()
 
 # changes the value of a given row, column or matrix elements in ledMatrix
 # inputs:
@@ -263,7 +267,10 @@ def printLedX(objectType, pos, array):
                 j += 1
             i += 1
     updateDecimalList()
+    print(str(ledDecimalList))
     sendLedInstructions()
+        
+    #time.sleep(3)
 
 ###############################
 ## Blink and Delay functions ##
@@ -306,13 +313,13 @@ def blinkLed_aux(row, column, delay, timeRange):
 # inputs:
 # time -> amount of time of the delay
 # unit -> units of the emount of time, it could be seconds ("Sec"), miliseconds ("Mil") or minute ("Min")
-def delay(time, unit):
+def delay(amount, unit):
     factor = 1 # in case time is in seconds
     if unit == "Min":
         factor *= 60
     elif unit == "Mil":
         factor /= 1000
-    time.sleep(time*factor)
+    time.sleep(amount*factor)
 
 
 '''

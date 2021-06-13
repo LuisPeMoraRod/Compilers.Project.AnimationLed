@@ -1,19 +1,49 @@
 import out_aux
 
-trueList = out_aux.createList(8, True)
+matrix1 = [[True, True, True, True, True, True, True, True],
+[True, True, True, True, True, True, True, False],
+[True, True, True, True, True, True, False, False],
+[True, True, True, True, True, False, False, False],
+[True, True, True, True, False, False, False, False],
+[True, True, True, False, False, False, False, False],
+[True, True, False, False, False, False, False, False],
+[True, False, False, False, False, False, False, False]]
 
-falseList = out_aux.createList(8, False)
+matrix2 = [[True, True, True, True, True, True, True, True],
+	[False, True, True, True, True, True, True, True],
+	[False, False, True, True, True, True, True, True],
+	[False, False, False, True, True, True, True, True],
+	[False, False, False, False, True, True, True, True],
+	[False, False, False, False, False, True, True, True],
+	[False, False, False, False, False, False, True, True],
+	[False, False, False, False, False, False, False, True]]
 
-row = 0
+matrix3 = [[False, False, False, False, False, False, False, True],
+	[False, False, False, False, False, False, True, True],
+	[False, False, False, False, False, True, True, True],
+	[False, False, False, False, True, True, True, True],
+	[False, False, False, True, True, True, True, True],
+	[False, False, True, True, True, True, True, True],
+	[False, True, True, True, True, True, True, True],
+    [True, True, True, True, True, True, True, True]]
 
-while True:
-    if row < 8:
-        row += 1
-    else:
-        row = 0
-    out_aux.printLedX("R", row, trueList)
-    if row == 0:
-        out_aux.printLedX("R", 7, falseList)
-    else:
-        out_aux.printLedX("R", row-1, falseList)
+matrix4 = [[True, False, False, False, False, False, False, False],
+	[True, True, False, False, False, False, False, False],
+	[True, True, True, False, False, False, False, False],
+	[True, True, True, True, False, False, False, False],
+	[True, True, True, True, True, False, False, False],
+	[True, True, True, True, True, True, False, False],
+	[True, True, True, True, True, True, True, False],
+	[True, True, True, True, True, True, True, True]]
+
+recoverList = [True, True, True, True, True, True, True, True]
+
+for elem in recoverList:
+    out_aux.printLedX("M", 0, matrix1)
+    out_aux.delay(1, "Sec")
+    out_aux.printLedX("M", 0, matrix2)
+    out_aux.delay(1, "Sec")
+    out_aux.printLedX("M", 0, matrix3)
+    out_aux.delay(1, "Sec")
+    out_aux.printLedX("M", 0, matrix4)
     out_aux.delay(1, "Sec")
