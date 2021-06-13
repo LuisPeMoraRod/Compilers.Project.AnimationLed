@@ -1668,8 +1668,10 @@ class Parser:
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 self.currentLineText += "out_aux.createList("
                 if self.checkToken(TokenType.NUMBER):
+                    self.currentLineText += self.curToken.text
                     elements = int(self.curToken.text)
                 elif self.checkToken(TokenType.IDENT):
+                    self.currentLineText += self.curToken.text
                     if self.getSymbolType(self.tempIdent, procedure) == TokenType.NUMBER:
                         elements = self.getSymbolValue(self.curToken.text)
                 else:
