@@ -1,13 +1,18 @@
 Procedure Main ()
 {
     listvar = [true, false, true, false, false, false, true, true];
-    Call function2(true, false);
+    Call function2();
 };
 
-Procedure function2 (param, param2)
+Procedure function2 ()
 {
-    If listvar[:,6] == true
+    var = 1;
+    If var >= 4
     {
-        sum3 = 2;
+        num = 2;
+    };
+
+    If listvar[3] != true {
+        num = 3;
     };
 };

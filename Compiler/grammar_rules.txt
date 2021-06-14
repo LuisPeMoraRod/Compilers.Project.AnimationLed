@@ -2,9 +2,12 @@ program := {procedure}
 
 procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
 
-statement := IDENT "=" expression ";"
-    | If comparison "{" {statement} "}"
-    | IDENT "(" ")"
+statement := IDENT "=" (expression | list) ";"
+    | IDENT compoundIdent "=" compoundDeclaration ";"
+    | If comparison "{" {statement} "}" ";"
+    | IDENT squareBrackets "=" ("[" boolean listValues "]" | boolean)
+    | IDENT squareBrackets "." ("Neg" | "T" | "F")
+    | "Blink" "(" IDENT {squareBrackets} "," number "," "'" ("Mil" "Seg" "Min") "'" "," boolean ")" ";" 
 
 params ::= {IDENT ","} {IDENT}
 comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
@@ -13,6 +16,12 @@ term ::= unary {( "/" | "*" ) unary}
 unary ::= ["+" | "-"] module
 module := exp {("%" exp)}
 exp := primary {"**" }
-primary ::= number | ident{squareBrackets} | "(" expression ")"
+primary ::= boolean | number | ident{squareBrackets} | "(" expression ")"
 
-squareBrackets := "[" (expression | ":" "," )
+list ::= "[" (boolean ",")*7 boolean "]"
+
+squareBrackets := "[" (number {":" number}| ":" "," number ) "]"
+
+compoundIdent := {"," IDENT compoundIdent}
+
+listValues := ("," boolean listValues | epsilum)

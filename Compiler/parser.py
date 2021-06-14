@@ -479,7 +479,7 @@ class Parser:
                                 else:
                                     self.abort("Trying to access an invalid identifier: "+ self.curToken.text) 
                                 
-                                self.checkRows(size, index);
+                                self.checkRows(size, index)
                                 self.nextToken()
                                 self.match(TokenType.SQRBRACKETRIGHT)
                             #A matrix element is given
@@ -1151,10 +1151,15 @@ class Parser:
     # comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
     def comparison(self, procedure):
         print("COMPARISON")
-        self.isIdentfier(procedure)
-        # Must be at least one comparison operator and another expression.
-        if self.isComparisonOperator():
-            self.nextToken()
+        if self.isBoolIdent(procedure):
+            if self.checkToken(TokenType.EQEQ):
+                self.currentLineText += '=='
+            elif self.checkToken(TokenType.NOTEQ):
+                self.currentLineText += '!='
+            else:
+                self.abort("Invalid comparison operator at: " + self.curToken.text)
+
+            self.nextToken()  
             if self.checkToken(TokenType.true):
                 self.currentLineText += "True"
                 self.match(TokenType.true)
@@ -1162,14 +1167,27 @@ class Parser:
                 self.currentLineText += "False"
                 self.match(TokenType.false)
             else:
-                self.expression(procedure)
-        else:
-            self.abort("Expected comparison operator at: " + self.curToken.text)
+                self.abort("Expected a BOOLEAN at: " + self.curToken.text)
 
-        # Can have 0 or more comparison operator and expressions.
-        while self.isComparisonOperator():
-            self.nextToken()
-            self.expression(procedure)
+        else:
+            # Must be at least one comparison operator and another expression.
+            if self.isComparisonOperator():
+                self.nextToken()
+                if self.checkToken(TokenType.true):
+                    self.currentLineText += "True"
+                    self.match(TokenType.true)
+                elif self.checkToken(TokenType.false):
+                    self.currentLineText += "False"
+                    self.match(TokenType.false)
+                else:
+                    self.expression(procedure)
+            else:
+                self.abort("Invalid comparison operator at: " + self.curToken.text)
+
+            # Can have 0 or more comparison operator and expressions.
+            while self.isComparisonOperator():
+                self.nextToken()
+                self.expression(procedure)
     
     def isComparisonOperator(self):
             if self.checkToken(TokenType.GT):
@@ -1307,34 +1325,45 @@ class Parser:
             # Error!
             self.abort("Unexpected token at " + self.curToken.text)
 
-    def isIdentfier(self, procedure):
+    def isBoolIdent(self, procedure):
         print("Comparsion identifier")
         if self.checkToken(TokenType.IDENT): 
             self.tempIdent = self.curToken.text
             self.currentLineText += self.tempIdent
-            if self.symbolExists(self.tempIdent, self.tempProcedure):
+            if self.symbolExists(self.tempIdent, procedure):
                 self.nextToken()
-                self.squareBracketsComp(self.tempIdent, procedure)
+                if self.getSymbolType(self.tempIdent, procedure) == TokenType.LIST:
+                    self.squareBracketsComp(self.tempIdent, procedure)
+                    return True
+                elif self.getSymbolType(self.tempIdent, procedure) == TokenType.BOOLEAN:
+                    return True
+                else:
+                    return False
             else:
                  self.abort("Attempting to access an undeclared variable: " + self.tempIdent)
         else:
-            # Error!
-            self.abort("Unexpected token at " + self.curToken.text)
+            return False #Not an identifier
 
     #checks for square bracktes in identifiers from comparisons
     def squareBracketsComp(self, identifier, procedure):
         size = self.getSymbolValue(identifier)
         if self.checkToken(TokenType.SQRBRACKETLEFT):
+            self.currentLineText += "["
             print("SQUARE BRACKETS")
             if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: 
                 self.nextToken()
                 if self.checkToken(TokenType.DOUBLEDOT):#column: listvar[:,5]
                     self.match(TokenType.DOUBLEDOT)
+                    self.currentLineText += ":"
+
                     self.match(TokenType.COMA)
-                    
+                    self.currentLineText += ","
+
                     size = self.getSymbolValue(identifier)
-                    self.inRange(size, self.tempProcedure) 
+                    self.currentLineText += self.curToken.text 
+                    self.inRange(size, self.tempProcedure)
                     self.match(TokenType.SQRBRACKETRIGHT)
+                    self.currentLineText += "]"
 
                 elif self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT): #simple id listvar[0]
                     size = self.getSymbolValue(identifier)
@@ -1346,8 +1375,12 @@ class Parser:
                         num1 = self.getSymbolValue(self.curToken.text)
                     else:
                         self.abort("Trying to access an invalid identifier: " +  self.curToken.text)
+                    self.currentLineText += self.curToken.text
+
                     self.inRange(size, self.tempProcedure)
                     self.match(TokenType.SQRBRACKETRIGHT)
+                    self.currentLineText += "]"
+
                 else:
                     self.abort("Invalid range") 
 
