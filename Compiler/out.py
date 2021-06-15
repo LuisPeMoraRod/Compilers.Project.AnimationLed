@@ -1,9 +1,18 @@
-var=3
-def Prod__(hello_,hello_2,h___ello3):
-        var2_=var
-        print(var2_)
-def function():
-        Prod__(1,2,3)
-function()
-Prod__(1,2,3)
+var= True
+x=5+6
+x=5-6
+x=5
+x=x*5
+y=2**3
+x=x/x
+x=77//8
+x=5%2
+def prod():
+        varBool=var
+        x=2
+        y=4
+        z=x+((y*10)/4)-12
 
+def function():
+        pass
+prod()

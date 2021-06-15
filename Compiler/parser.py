@@ -275,14 +275,14 @@ class Parser:
 
             self.tempIdent = variables[0]
 
-            self.currentLineText = self.tempIdent + '='
+            self.currentLineText = self.indentation + self.tempIdent + '='
             self.assignation(procedure)
 
 
             for i in range(1, len(variables)):
                 self.match(TokenType.COMA)
                 self.tempIdent = variables[i]
-                self.currentLineText = self.tempIdent + '='
+                self.currentLineText = self.indentation + self.tempIdent + '='
                 self.assignation(procedure)
         
         #List operations or modifiers
@@ -1584,6 +1584,19 @@ class Parser:
             self.currentLineText += " False"
             self.emitter.emitLine(self.currentLineText)
             self.currentLineText = ""
+
+        elif self.checkToken(TokenType.IDENT) and self.symbolExists(self.curToken.text, procedure)\
+            and self.getSymbolType(self.curToken.text, procedure) == TokenType.BOOLEAN:
+            if curSymbol != TokenType.BOOLEAN and curSymbol != None:
+                self.abort("Attempting to assign a BOOLEAN to a " + curSymbol.name + " typed variable: " + self.tempIdent)
+
+            self.currentLineText += self.curToken.text
+
+            self.nextToken()
+            self.tempType = TokenType.BOOLEAN
+            self.emitter.emitLine(self.currentLineText)
+            self.currentLineText = ""
+
         
         #Check for lists and matrixes
         elif self.checkToken(TokenType.SQRBRACKETLEFT): 
@@ -1792,7 +1805,7 @@ class Parser:
                 self.currentLineText = ""
                 self.tempType = TokenType.NUMBER
                 self.tempIdent = ident
-                self.tempValue = eval(self.tempOperation)
+                #self.tempValue = eval(self.tempOperation)
 
         if not self.symbolExists(self.tempIdent, procedure):
             #print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")

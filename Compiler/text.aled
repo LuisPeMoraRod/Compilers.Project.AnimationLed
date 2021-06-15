@@ -1,15 +1,19 @@
+
 ## este es solo con comentario
 Procedure Main(){
-    var = 3;
-    Call function();
-    Call Prod@_(1, 2, 3);
+    var = true;
+    varnum= 9;
+    varList = [true, true, false, false,
+        false, false, false, var];
+    varList[6:9] = [false, true];
+    
 };
 
-Procedure Prod@_ (hello_, hello?2, h__?ello3){
-    var2? = var;
+Procedure prod (){
+
+
 };
+
 Procedure function(){
-    Call Prod@_(1, 2, 3);
+    
 };
-
-
