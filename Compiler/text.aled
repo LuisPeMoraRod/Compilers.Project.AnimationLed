@@ -1,19 +1,15 @@
 
 ## este es solo con comentario
 Procedure Main(){
-    var = true;
-    varnum= 9;
-    varList = [true, true, false, false,
-        false, false, false, var];
-    varList[6:9] = [false, true];
-    
-};
 
-Procedure prod (){
-
-
+    var= 10;
+    lista = [true, false, true];
+    If var < false {
+        var2 = 2;
+    };
 };
 
 Procedure function(){
-    
+
 };
+

@@ -684,7 +684,7 @@ class Parser:
                         else:
                             tempList += "[" + self.curToken.text
                         self.checkLstElmnt() #first element
-                        print("Adding to the list: " + self.currentTextLine)
+                        print("Adding to the list: " + self.currentLineText)
                         elements = 1
         
                         while not self.checkToken(TokenType.SQRBRACKETRIGHT):
@@ -697,7 +697,7 @@ class Parser:
                             else:
                                 tempList += self.curToken.text
                             self.checkLstElmnt()
-                            print("Adding to the list: " + self.currentTextLine)
+                            print("Adding to the list: " + self.currentLineText)
                             elements = elements + 1
                             
                         self.match(TokenType.SQRBRACKETRIGHT)
@@ -777,6 +777,7 @@ class Parser:
                                 self.currentTextLine += "out_aux.insertMatrixColumnAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
                         self.emitter.emitLine(self.currentTextLine)
                         self.currentTextLine = ""
+                        self.currentLineText = ""
                     else:
                         self.abort("Expected a 0 or a 1, got: " + self.curToken.text)
 
@@ -961,8 +962,10 @@ class Parser:
             self.match(TokenType.CURLYBRACKETRIGHT)
             self.deleteSymbol(iterable, procedure)
 
+            
             if hasStep:
                 self.indentation = self.indentation[:-1]
+                self.emitter.emitLine(self.indentation + self.stepVar + "+=" + self.stepVar)
 
             self.indentation = self.indentation[:-1]
 
