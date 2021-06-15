@@ -1,9 +1,9 @@
-import out_aux
-listvar=[True, False, True, False, False, False, True, True]
-function2()
-def function2():
-	var=1
-	if var>=4:
-		num=2
-	if listvar[3]!=True:
-		num=3
+var=3
+def Prod__(hello_,hello_2,h___ello3):
+        var2_=var
+        print(var2_)
+def function():
+        Prod__(1,2,3)
+function()
+Prod__(1,2,3)
+

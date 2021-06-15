@@ -190,7 +190,10 @@ class Parser:
             if self.checkToken(TokenType.ROUNDBRACKETRIGHT):
                 self.tempParameterCall = []
                 self.currentLineText += ')'
-                self.emitter.emitLine(self.currentLineText)
+                if procedure == 'Main':
+                    self.emitter.emitLineEnd(self.currentLineText)
+                else:
+                    self.emitter.emitLine(self.currentLineText)
                 self.currentLineText = ""
                 self.nextToken()
             else:
@@ -204,7 +207,10 @@ class Parser:
                         self.currentLineText += param + ","
                 self.currentLineText = self.currentLineText[:-1]
                 self.currentLineText += ')'
-                self.emitter.emitLine(self.currentLineText)
+                if procedure == 'Main':
+                    self.emitter.emitLineEnd(self.currentLineText)
+                else:
+                    self.emitter.emitLine(self.currentLineText)
                 self.currentLineText = ""
 
 

@@ -7,7 +7,7 @@ class Lexer:
         self.curChar = ''   # Current character in the string.
         self.curPos = -1    # Current position in the string.
         self.curLine = 1    # Current line in the code (for error handling)
-        self.specialCharacters = "ºª\!|#$&?'¿¡`^¨´_<>@"
+        self.specialCharacters = "_?@"  #"ºª\!|#$&?'¿¡`^¨´_<>@"
         self.nextChar()
 
     # Process the next character.
@@ -195,11 +195,17 @@ class Lexer:
 
             # Check if the token is in the list of keywords.
             tokText = self.source[startPos : self.curPos + 1] # Get the substring.
+            tokText_aux = ""
+            for char in tokText:
+                if char == '@' or char == '?':
+                    tokText_aux += '_'
+                else:
+                    tokText_aux += char
             keyword = Token.checkIfKeyword(tokText)
             if keyword == None: # Identifier
-                token = Token(tokText, TokenType.IDENT)
+                token = Token(tokText_aux, TokenType.IDENT)
             else:   # Keyword
-                token = Token(tokText, keyword)
+                token = Token(tokText_aux, keyword)
 
         elif self.curChar == ';':
             token = Token(self.curChar, TokenType.SEMICOLON)
