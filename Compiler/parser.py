@@ -553,11 +553,10 @@ class Parser:
                 if self.checkToken(TokenType.NUMBER):
                     columnIndex = int(self.curToken.text)
                 elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
-                    columnIndex = self.getSymbolValue(self.curToken.text)  
+                    columnIndex = int(self.getSymbolValue(self.curToken.text))
                 else:
                     self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
-                    
-                columnIndex = int(self.curToken.text)
+                tempMatrixColumn = self.curToken.text
                 self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
                 self.nextToken()
                 self.match(TokenType.SQRBRACKETRIGHT)
@@ -597,13 +596,11 @@ class Parser:
                                         columnIndex = int(self.curToken.text)
                                     elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
                                         columnIndex = self.getSymbolValue(self.curToken.text)
-                                    
                                     else:
                                         self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
-                                    
                                     self.checkColumns(m2Columns, columnIndex)
                                     self.nextToken()
-                                    self.match(TokenType.SQRBRACKETRIGHT);
+                                    self.match(TokenType.SQRBRACKETRIGHT)
                                 else:
                                     self.abort("Invalid token or identifier: " + self.curToken.text)
                             else:
@@ -925,7 +922,7 @@ class Parser:
 
                     #Checks if the iterable is a number 
                     elif self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
-                        self.currentTextLine += self.curToken.text
+                        self.currentTextLine += "range(0, " + self.curToken.text + ")"
                         self.nextToken()
                     else:
                         self.abort("Invalid iterable: " + self.curToken.text)
@@ -1838,7 +1835,7 @@ class Parser:
                 self.currentLineText = ""
                 self.tempType = TokenType.NUMBER
                 self.tempIdent = ident
-                #self.tempValue = eval(self.tempOperation)
+                self.tempValue = eval(self.tempOperation)
 
         if not self.symbolExists(self.tempIdent, procedure):
             #print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
