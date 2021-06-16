@@ -153,6 +153,19 @@ def modifyMatrixColumn(matrix, column):
             matrix[row][column] = True
         row += 1
 
+# Modify the boolean value of the entire matrix
+def modifyMatrix(matrix):
+    row = 0
+    while row < len(matrix):
+        column = 0
+        while column < len(matrix):
+            if matrix[row][column]:
+                matrix[row][column] = False
+            else:
+                matrix[row][column] = True
+            column += 1
+        row += 1
+
 # Inserts row at the end of the matrix
 # used for matrix.insert(row, 0)
 # inputs: matrix -> matrix to modify
@@ -321,6 +334,10 @@ def delay(amount, unit):
         factor /= 1000
     time.sleep(amount*factor)
 
+
+print(ledMatrix)
+modifyMatrix(ledMatrix)
+print(ledMatrix)
 
 '''
 matrix = ledMatrix

@@ -644,11 +644,16 @@ class Parser:
             tempMatrixOperation = ""
             tempList = ""
             self.nextToken()
-            if self.checkPeek(TokenType.IDENT):
+            if self.checkPeek(TokenType.IDENT) or self.checkPeek(TokenType.Neg):
                 self.nextToken()
-                
+
+                # Cheks if the user wants to apply .Neg to an entire matrix
+                if self.curToken.text == "Neg":
+                    self.emitter.emitLine(self.indentation + "out_aux.modifyMatrix(" + matrix + ")")
+                    self.nextToken()
+
                 #Checks if the user wants to retrieve the rows and columns of a matrix
-                if self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
+                elif self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
                     self.currentTextLine = self.indentation
                     if self.curToken.text == "shapeF":
                         self.currentTextLine += "len("  + matrix + ")"

@@ -11,7 +11,7 @@ Procedure Main(){
 
     num = 3;
     matrix = [[true, false], [true, true], [false, false]];
-    matrix[:,num].Neg;
+    matrix.Neg;
 };
 
 
