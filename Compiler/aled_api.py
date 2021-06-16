@@ -153,13 +153,37 @@ def modifyMatrixColumn(matrix, column):
             matrix[row][column] = True
         row += 1
 
+# Modify the boolean value of the entire matrix
+def modifyMatrix(matrix):
+    row = 0
+    while row < len(matrix):
+        column = 0
+        while column < len(matrix):
+            if matrix[row][column]:
+                matrix[row][column] = False
+            else:
+                matrix[row][column] = True
+            column += 1
+        row += 1
+
 # Inserts row at the end of the matrix
 # used for matrix.insert(row, 0)
 # inputs: matrix -> matrix to modify
 #         row -> row to insert
 def insertMatrixRow(matrix, row):
     # Inserts a row into the matrix at the end of it (as last row)
-    matrix.append(row)
+    newRow = []
+    count = 0
+    if len(matrix) != 0:
+        while count < len(matrix[0]):
+            if count < len(row):
+                newRow.append(row[count])
+            else:
+                newRow.append(False)
+            count += 1
+        matrix.append(newRow)
+    else:
+        matrix.append(row)
 
 # Inserts row at a specific position of the matrix
 # used for matrix.insert(row, 0, pos)
@@ -168,7 +192,18 @@ def insertMatrixRow(matrix, row):
 #         pos -> position of insertion
 def insertMatrixRowAtPos(matrix, row, pos):
     # Inserts a row into a matrix at the position given
-    matrix.insert(pos, row)
+    newRow = []
+    count = 0
+    if len(matrix) != 0:
+        while count < len(matrix[0]):
+            if count < len(row):
+                newRow.append(row[count])
+            else:
+                newRow.append(False)
+            count += 1
+        matrix.insert(pos, newRow)
+    else:
+        matrix.insert(pos, row)
 
 
 # Inserts column at the end of the matrix
@@ -180,7 +215,10 @@ def insertMatrixColumn(matrix, column):
     count = 0
     row = 0
     while row < len(matrix):
-        matrix[row].append(column[count])
+        if count < len(column):
+            matrix[row].append(column[count])
+        else:
+            matrix[row].append(False)
         row += 1
         count += 1
 
@@ -194,9 +232,12 @@ def insertMatrixColumnAtPos(matrix, column, pos):
     count = 0
     row = 0
     while row < len(matrix):
-        matrix[row].insert(pos, column[count])
-        count += 1
+        if count < len(column):
+            matrix[row].insert(pos, column[count])
+        else:
+            matrix[row].insert(pos, False)
         row += 1
+        count += 1
 
 # Deletes the indicated row of the given matrix
 # used for matrix.delete(rowNumber, 0)
@@ -321,6 +362,10 @@ def delay(amount, unit):
         factor /= 1000
     time.sleep(amount*factor)
 
+
+print(ledMatrix)
+modifyMatrix(ledMatrix)
+print(ledMatrix)
 
 '''
 matrix = ledMatrix
