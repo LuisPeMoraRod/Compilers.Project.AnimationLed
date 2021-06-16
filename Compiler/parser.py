@@ -347,12 +347,13 @@ class Parser:
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 self.currentLineText += self.curToken.text
                 size = self.getSymbolValue(self.tempIdent)
-                self.inRange(size, procedure)
+                self.inRange(size, procedure, False)
                 self.match(TokenType.COMA)
                 self.currentLineText += ', '
                 self.checkLstElmnt()
                 self.currentLineText += ')'
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.incrementListIndex(self.tempIdent)
                 self.emitter.emitLine(self.currentLineText)
                 self.currentLineText = ""
 
@@ -362,9 +363,11 @@ class Parser:
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 self.currentLineText += self.curToken.text + ')'
-                size = self.getSymbolValue(self.tempIdent) - 1
-                self.inRange(size, procedure)
+                size = self.getSymbolValue(self.tempIdent)
+                print("size" + str(size))
+                self.inRange(size, procedure, True)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
+                self.decreaseListIndex(self.tempIdent)
                 self.emitter.emitLine(self.currentLineText)
                 self.currentLineText = ""
             else:
@@ -523,7 +526,7 @@ class Parser:
                         self.abort("Expected an int, got: "+ self.curToken.text)
 
                 else:
-                    self.abort("Expected an int or :, got: "+ self.curToken.text)
+                    self.abort("Expected an int or ',' got: "+ self.curToken.text)
 
                 #Checks for matrix1[].Neg operation
                 if self.checkToken(TokenType.DOT):
@@ -1370,7 +1373,7 @@ class Parser:
 
                     size = self.getSymbolValue(identifier)
                     self.currentLineText += self.curToken.text 
-                    self.inRange(size, self.tempProcedure)
+                    self.inRange(size, self.tempProcedure, False)
                     self.match(TokenType.SQRBRACKETRIGHT)
                     self.currentLineText += "]"
 
@@ -1386,7 +1389,7 @@ class Parser:
                         self.abort("Trying to access an invalid identifier: " +  self.curToken.text)
                     self.currentLineText += self.curToken.text
 
-                    self.inRange(size, self.tempProcedure)
+                    self.inRange(size, self.tempProcedure, False)
                     self.match(TokenType.SQRBRACKETRIGHT)
                     self.currentLineText += "]"
 
@@ -1408,7 +1411,7 @@ class Parser:
                     self.match(TokenType.COMA)
                     
                     size = self.getSymbolValue(identifier)
-                    self.inRange(size, self.tempProcedure) 
+                    self.inRange(size, self.tempProcedure, False) 
                     self.match(TokenType.SQRBRACKETRIGHT)
 
                 elif self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT): #range: listvar[1:6] or simple id listvar[0] 
@@ -1428,7 +1431,7 @@ class Parser:
                     tempCurrentText2 += self.curToken.text + ', '
                     
                     
-                    self.inRange(size, self.tempProcedure)
+                    self.inRange(size, self.tempProcedure, False)
                     if self.checkToken(TokenType.DOUBLEDOT):
             
                         self.match(TokenType.DOUBLEDOT)
@@ -1444,7 +1447,7 @@ class Parser:
                         self.currentLineText += self.curToken.text + ', '
 
                         if num1 < num2:
-                            self.inRange(size, self.tempProcedure)
+                            self.inRange(size, self.tempProcedure, False)
                             self.match(TokenType.SQRBRACKETRIGHT)
                             return (num1, num2)
                         else:
@@ -1462,7 +1465,7 @@ class Parser:
                 self.abort("Attempting to access an element of a NON LIST identifier: " + identifier)
     
     #Checks if delimiters inside brackets are in valid range
-    def inRange(self, size, procedure):
+    def inRange(self, size, procedure, isInsert):
         number = 0
 
         if self.checkToken(TokenType.NUMBER):
@@ -1471,17 +1474,18 @@ class Parser:
         elif self.checkToken(TokenType.IDENT):
             
             if self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
-                print("ESTA")
                 number = self.getSymbolValue(self.curToken.text)        
         else:
             self.abort("Expected NUMBER, got" + self.curToken.kind.name)
         
-        if 0 <= number <= size:
+        if not isInsert and 0 <= number < size:
             self.nextToken()
-            
+            return True
+
+        elif isInsert and 0<= number <= size:
+            self.nextToken()
             return True
         else:
-            print("ESTA")
             self.abort("Index: " + self.curToken.text +" out of range")
         
        
@@ -1507,11 +1511,24 @@ class Parser:
                 return symbol[1]
         return None
     
+    #Returns value of identifier: e.g.: var = 5; -> returns 5 
     def getSymbolValue(self, identifier):
         for symbol in self.symbols:
             if symbol[0] == identifier:
                 return symbol[3]
         return None
+
+    #Decreases in 1 list size
+    def decreaseListIndex(self, identifier):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                symbol[3] -= 1
+
+    #Increase in 1 list size
+    def incrementListIndex(self, identifier):
+        for symbol in self.symbols:
+            if symbol[0] == identifier:
+                symbol[3] += 1
     
     def getMatrixRows(self, identifier):
         for symbol in self.symbols:
@@ -1602,7 +1619,7 @@ class Parser:
 
         
         #Check for lists and matrixes
-        elif self.checkToken(TokenType.SQRBRACKETLEFT): 
+        elif self.checkToken(TokenType.SQRBRACKETLEFT):
 
             self.currentLineText += "["
             matrixIdent = self.tempIdent
@@ -1769,30 +1786,39 @@ class Parser:
                 self.tempValue = None
                 self.tempColumns = self.getMatrixColumns(self.curToken.text)
                 self.tempRows = self.getMatrixRows(self.curToken.text)
+                
+                self.currentLineText += self.curToken.text
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
+                
                 self.nextToken()
 
             elif self.getSymbolType(self.curToken.text, procedure) == TokenType.LIST:
                 ident = self.curToken.text
+                self.currentLineText += ident
                 self.nextToken()
                 if self.checkToken(TokenType.SQRBRACKETLEFT):
                     self.nextToken()
+                    self.currentLineText += "["
                     if self.checkToken(TokenType.NUMBER):
                         index = int(self.curToken.text)
                         if index>self.getSymbolValue(ident)-1 and index>=0:
                             self.abort("Index out of range")
-                        else:
-                            self.nextToken()
+                        
+                        self.currentLineText += self.curToken.text
+                        self.nextToken()
                         if self.checkToken(TokenType.DOUBLEDOT):
                             self.nextToken()
+                            self.currentLineText += ":"
                             if self.checkToken(TokenType.NUMBER):
                                 index2 = int(self.curToken.text)
-                                if index2>=self.getSymbolValue(ident) - 1 and index2 >= index:
+                                if index2 < self.getSymbolValue(ident) and index2 > index:
+                                    self.currentLineText += self.curToken.text
                                     self.nextToken()
                                     self.tempType = TokenType.LIST
                                     self.tempValue = index2 - index
 
                                 else:
-                                    print(index2)
                                     self.abort("Invalid range")
                             else:
                                 self.abort("Expected a number, got: " + self.curToken.text)
@@ -1800,7 +1826,11 @@ class Parser:
                             self.tempType = TokenType.NUMBER
                             self.tempIdent = ident
                             self.tempValue = None
+                        self.currentLineText += "]"
                         self.match(TokenType.SQRBRACKETRIGHT)
+                    
+                self.emitter.emitLine(self.currentLineText)
+                self.currentLineText = ""
             
             else:
                 self.expression(procedure)

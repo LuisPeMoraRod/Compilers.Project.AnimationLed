@@ -1,3 +1,3 @@
-var12 =1 
-for var12 in 50:
-    print(var12)
+import out_aux
+matrix=[[True, False, True], [True, True, True], [False, False, True]]
+matrix2=matrix

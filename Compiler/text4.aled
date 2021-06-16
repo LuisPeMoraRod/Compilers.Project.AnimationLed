@@ -1,18 +1,5 @@
 Procedure Main ()
 {
-    listvar = [true, false, true, false, false, false, true, true];
-    Call function2();
-};
-
-Procedure function2 ()
-{
-    var = 1;
-    If var >= 4
-    {
-        num = 2;
-    };
-
-    If listvar[3] != true {
-        num = 3;
-    };
+    matrix = [[true,false,true],[true, true, true],[false,false,true]];
+    matrix2 = matrix;
 };
