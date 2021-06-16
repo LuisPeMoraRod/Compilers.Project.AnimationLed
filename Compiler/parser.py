@@ -63,11 +63,15 @@ class Parser:
 
     # Finished the program to indicate an Error
     def abort(self, message):
-        sys.exit("Error. " + message + " at Line " + str(self.lexer.curLine))
+        print("Error. " + message + " at Line " + str(self.lexer.curLine))
+        print(str(self.lexer.curLine))
+        sys.exit()
 
     # Finished the program to indicate an Error
     def abortLine(self, message, lineNumber):
-        sys.exit("Error. " + message + " at Line " + str(lineNumber))
+        print("Error. " + message + " at Line " + str(lineNumber))
+        print(str(lineNumber))
+        sys.exit()
 
         # Production rules.
 

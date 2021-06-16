@@ -1,0 +1,31 @@
+Procedure Main ()
+{
+    var1 = true;
+    var2 = 2;
+    var3 = 1;
+
+    list1 = [true, false, true, false];
+    list2 = [true, true, true];
+    matrix1 = [[true, false, true, true], [true, true, true, true], [false, true, false, false]];
+    matrix2 = matrix1;
+    
+    matrix1[3] = [true, true, true, true];
+    matrix1[2] = list1;
+    matrix1[3] = matrix2[0];
+
+    matrix1[1, 2];
+    matrix1[1, 2] = true;
+    matrix1[1, 2] = false;
+    matrix1[1, 2] = var1;
+    matrix1[1, 2] = list1[2];
+    matrix1[1, 2] = list1[var2];
+    matrix1[1, 2] = list1[var2];
+    matrix1[1, 2] = list1[var2];
+    matrix1[1, 2] = matrix2[1, 2];
+    matrix1[1, 2] = matrix2[var3, var2];
+
+    matrix1[:,2] = list2;
+    matrix1[:,2] = [true, true, true]; 
+    matrix1[:,2] = matrix2[:,var2];
+
+};
