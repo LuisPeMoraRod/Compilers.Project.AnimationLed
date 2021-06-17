@@ -8,6 +8,7 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.InputMethodEvent;
 import javafx.stage.FileChooser;
+import sun.font.TrueTypeGlyphMapper;
 
 import java.io.*;
 import java.util.List;
@@ -15,7 +16,12 @@ import java.util.Scanner;
 
 public class IDEController {
 
-    List<CodeFile> openFiles;
+    File file;
+    final String aledFile = "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/code.aled";
+    final String command = "python3 ";
+    final String mainFile = "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/Compiler/main.py ";
+    final String outputFile = "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/out.py";
+    int errorLine;
 
     @FXML
     Button btnOpenFile;
@@ -29,7 +35,7 @@ public class IDEController {
     @FXML
     ListView listFiles;
 
-    File file;
+
 
     public void openFile(ActionEvent actionEvent) {
 
@@ -39,10 +45,13 @@ public class IDEController {
             file = fileChooser.showOpenDialog(btnOpenFile.getScene().getWindow());
 
             if (file!=null){
-                Scanner s = new Scanner(new File(file.getAbsolutePath())).useDelimiter("\n");
+                textCode.clear();
+                textOutput.clear();
+                Scanner s = new Scanner(new File(file.getAbsolutePath())).useDelimiter("\\n");
+
                 while (s.hasNext()) {
 
-                    textCode.appendText(s.next() + " "); // else read the next token
+                    textCode.appendText(s.next() + "\n"); // else read the next token
 
                 }
             }
@@ -57,52 +66,110 @@ public class IDEController {
     }
 
     public void compile(ActionEvent actionEvent) throws IOException {
-        try{
-            Runtime rt = Runtime.getRuntime();
-            Process pr = rt.exec("python3 " + "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/src/sample/test2.py");
-            pr.getOutputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                textOutput.appendText(line +"\n");
 
-            }
-        }
-        catch (IOException e){
-            System.err.println(e);
-        }
+        compileFile();
 
     }
 
     public void runCode(ActionEvent actionEvent) {
+        compileFile();
+
+        if (errorLine > 0){
+            textOutput.appendText("Error: Unable to execute program");
+        }
+        else{
+            textOutput.appendText("Executing code...");
+            executeFile();
+        }
+
+    }
+
+
+    public void countLines(){
         System.out.println(textCode.getText().split("\n").length);
     }
 
-    public void saveFile(ActionEvent actionEvent) {
+
+    public void compileFile(){
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file.getAbsolutePath()));
-            writer.write("Hola");
+
+            String code = textCode.getText();
+            BufferedWriter writer = new BufferedWriter(new FileWriter(aledFile));
+            writer.write(code);
 
             writer.close();
+
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
 
-    }
+        try{
+            textOutput.clear();
+            Runtime rt = Runtime.getRuntime();
+            Process pr = rt.exec(command + mainFile + aledFile);
+            pr.getOutputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (isNumeric(line)){
+                    errorLine = Integer.parseInt(line);
+                }
+                else{
+                    errorLine = 0;
+                    textOutput.appendText(line +"\n");
+                }
 
-    public void newFile(ActionEvent actionEvent) {
+            }
 
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
-        file = fileChooser.showSaveDialog(btnOpenFile.getScene().getWindow());
-        String code = textCode.getText();
+            if(errorLine >0){
+                int counter = 1;
+                textCode.clear();
+                Scanner s = new Scanner(new File(file.getAbsolutePath())).useDelimiter("\\n");
 
-        if (file != null) {
-            CodeFile codeFile = new CodeFile(file.getName(), file.getAbsolutePath());
-            openFiles.add(codeFile);
+                while (s.hasNext()) {
 
+                    if(counter!=errorLine){
+                        textCode.setStyle("-fx-text-color: #FFFFFF");
+                    }
+                    else{
+                        textCode.setStyle("-fx-text-color: #E854A3");
+                    }
+
+                    textCode.appendText(s.next() + "\n"); // else read the next token
+                    counter = counter + 1;
+
+                }
+            }
+
+        }
+        catch (IOException e){
+            System.err.println(e);
         }
     }
 
+    public void executeFile(){
+        try{
+            if (errorLine==0) {
+
+                Runtime rt = Runtime.getRuntime();
+                Process pr = rt.exec(command + outputFile);
+                pr.getOutputStream();
+            }
+
+        }
+        catch (IOException e){
+            System.err.println(e);
+        }
+    }
+
+    public boolean isNumeric(String string){
+        try{
+            errorLine = Integer.parseInt(string);
+            return true;
+        }
+        catch (NumberFormatException e){
+            return false;
+        }
+    }
 }
 

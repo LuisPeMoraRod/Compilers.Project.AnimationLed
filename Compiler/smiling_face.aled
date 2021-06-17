@@ -113,8 +113,20 @@ Procedure reset_t(){
     };
 };
 
+Procedure blink_method(){
+    blinkMat = [[false, false, false, false, false, false, false,false],
+                [false, false, false, false, true, false, false, false],
+                [false, false, false, false, true, true, false, false],
+                [true, true, true, true, true, true, true, false],
+                [true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, false],
+                [false, false, false, false, true, false, false, false],
+                [false, false, false, false, false, false, false,false]];
+    Blink(blinkMat, 2, "Seg");
+};
+
 Procedure animation_1(){
-    For i In 5 {
+    For i In 3 {
 
         Call face_1();
         PrintLedX("M", 0, matrix);
@@ -131,7 +143,7 @@ Procedure animation_1(){
         Delay(1, "Seg");
     };
 
-    For i In 5{
+    For i In 3{
         Call reset_f();
         PrintLedX("M", 0, matrix);
         Delay(1, "Seg");
@@ -148,4 +160,6 @@ Procedure animation_1(){
         PrintLedX("M", 0, matrix);
         Delay(1, "Seg");
     };
+
+    Call blink_method();
 };

@@ -5,7 +5,6 @@
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.shape.Line?>
-<?import javafx.scene.text.Font?>
 
 <Pane maxHeight="700.0" maxWidth="1000.0" minHeight="700.0" minWidth="1000.0" prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: #292B2D;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.IDEController">
     <children>
@@ -25,10 +24,7 @@
          <effect>
             <DropShadow color="#121414" />
          </effect></Button>
-                <TextArea fx:id="textCode" layoutY="49.0" prefHeight="459.0" prefWidth="1002.0" style="-fx-control-inner-background: #353839; -fx-text-box-border: transparent;" wrapText="true">
-         <font>
-            <Font name="Avenir Next Regular" size="15.0" />
-         </font></TextArea>
+                <TextArea fx:id="textCode" layoutY="49.0" prefHeight="459.0" prefWidth="1002.0" style="-fx-control-inner-background: #353839; -fx-text-box-border: transparent;" />
               <TextArea fx:id="textOutput" editable="false" layoutY="501.0" prefHeight="200.0" prefWidth="1000.0" style="-fx-control-inner-background: #353839; -fx-text-box-border: transparent;" wrapText="true" />
       <Line endX="899.0" endY="-3.814697265625E-6" layoutX="102.0" layoutY="50.0" startX="-100.0" stroke="#232425" strokeWidth="2.0" />
       <Line endX="899.0" endY="-3.814697265625E-6" layoutX="99.0" layoutY="503.0" startX="-100.0" stroke="#232425" strokeWidth="2.0" />
