@@ -11,6 +11,7 @@ Procedure Main ()
 
     Call M_Letter();
     Call R_Letter();
+    Call A_Letter();
 };
 
 Procedure M_Letter(){
@@ -357,4 +358,40 @@ Procedure R_Letter(){
     PrintLedX("M", 0, blank);
     Delay(1, "Seg");
 
+};
+
+Procedure A_Letter(){
+    mat = [[false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+
+    newColumn = [[false, false, true, true, true, true, true, true],
+                [false, true, true, true, true, true, true, true],
+                [true, true, false, false, true, true, false, false],
+                [true, true, false, false, true, true, false, false],
+                [true, true, false, false, true, true, false, false],
+                [true, true, false, false, true, true, false, false],
+                [false, true, true, true, true, true, true, true],
+                [false, false, true, true, true, true, true, true],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false]];
+
+
+    For column In newColumn {
+        PrintLedX("M", 0, mat);
+        Delay(1, "Seg");
+        mat.delete(0, 1);
+        mat.insert(column , 1);
+    };
 };
