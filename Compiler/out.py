@@ -6,7 +6,7 @@ def M_Letter():
 	for column in newColumn:
 		aled_api.printLedX("M", 0, mat)
 		aled_api.delay(0.7, "Seg")
-		aled_api.deleteMatrixColumn(0)
+		aled_api.deleteMatrixColumn(mat,0)
 		aled_api.insertMatrixColumn(mat,column)
 def A_Letter():
 	newColumn=[[False, False, True, True, True, True, True, True], [False, True, True, True, True, True, True, True], [True, True, False, False, True, True, False, False], [True, True, False, False, True, True, False, False], [True, True, False, False, True, True, False, False], [True, True, False, False, True, True, False, False], [False, True, True, True, True, True, True, True], [False, False, True, True, True, True, True, True], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False]]
@@ -14,7 +14,7 @@ def A_Letter():
 	for column in newColumn:
 		aled_api.printLedX("M", 0, mat)
 		aled_api.delay(0.7, "Seg")
-		aled_api.deleteMatrixColumn(0)
+		aled_api.deleteMatrixColumn(mat,0)
 		aled_api.insertMatrixColumn(mat,column)
 def R_Letter():
 	newColumn=[[True, True, True, True, True, True, True, True], [True, True, True, True, True, True, True, True], [True, True, False, False, True, True, False, False], [True, True, False, False, True, True, False, False], [True, True, False, False, True, True, False, False], [True, True, True, True, True, True, True, False], [True, True, True, True, False, False, True, True], [False, False, False, False, False, False, False, True], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False]]
@@ -22,15 +22,15 @@ def R_Letter():
 	for column in newColumn:
 		aled_api.printLedX("M", 0, mat)
 		aled_api.delay(0.7, "Seg")
-		aled_api.deleteMatrixColumn(0)
+		aled_api.deleteMatrixColumn(mat,0)
 		aled_api.insertMatrixColumn(mat,column)
 def C_Letter():
-	newColumn=[[False, False, False, False, False, False, False, False], [False, False, True, True, True, True, False, False], [False, True, True, True, True, True, True, False], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], 
+	newColumn=[[False, False, False, False, False, False, False, False], [False, False, True, True, True, True, False, False], [False, True, True, True, True, True, True, False], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False]] 
 	i4 = 0
 	for column in newColumn:
 		aled_api.printLedX("M", 0, mat)
 		aled_api.delay(0.7, "Seg")
-		aled_api.deleteMatrixColumn(0)
+		aled_api.deleteMatrixColumn(mat,0)
 		aled_api.insertMatrixColumn(mat,column)
 def O_Letter():
 	newColumn=[[False, False, True, True, True, True, False, False], [False, True, True, True, True, True, True, False], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [True, True, False, False, False, False, True, True], [False, True, True, True, True, True, True, False], [False, False, True, True, True, True, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False], [False, False, False, False, False, False, False, False]]
@@ -38,7 +38,7 @@ def O_Letter():
 	for column in newColumn:
 		aled_api.printLedX("M", 0, mat)
 		aled_api.delay(0.7, "Seg")
-		aled_api.deleteMatrixColumn(0)
+		aled_api.deleteMatrixColumn(mat,0)
 		aled_api.insertMatrixColumn(mat,column)
 M_Letter()
 A_Letter()
