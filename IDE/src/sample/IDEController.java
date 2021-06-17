@@ -20,6 +20,7 @@ public class IDEController {
     final String aledFile = "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/code.aled";
     final String command = "python3 ";
     final String mainFile = "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/Compiler/main.py ";
+    final String outputFile = "/Users/moniwaterhouse/Projects/Compilers.Project.AnimationLed/IDE/out.py";
     int errorLine;
 
     @FXML
@@ -119,6 +120,27 @@ public class IDEController {
                 }
 
             }
+
+            if(errorLine >0){
+                int counter = 1;
+                textCode.clear();
+                Scanner s = new Scanner(new File(file.getAbsolutePath())).useDelimiter("\\n");
+
+                while (s.hasNext()) {
+
+                    if(counter!=errorLine){
+                        textCode.setStyle("-fx-text-color: #FFFFFF");
+                    }
+                    else{
+                        textCode.setStyle("-fx-text-color: #E854A3");
+                    }
+
+                    textCode.appendText(s.next() + "\n"); // else read the next token
+                    counter = counter + 1;
+
+                }
+            }
+
         }
         catch (IOException e){
             System.err.println(e);
@@ -127,10 +149,12 @@ public class IDEController {
 
     public void executeFile(){
         try{
+            if (errorLine==0) {
 
-            Runtime rt = Runtime.getRuntime();
-            Process pr = rt.exec(command + mainFile + aledFile);
-            pr.getOutputStream();
+                Runtime rt = Runtime.getRuntime();
+                Process pr = rt.exec(command + outputFile);
+                pr.getOutputStream();
+            }
 
         }
         catch (IOException e){
