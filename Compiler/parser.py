@@ -73,7 +73,7 @@ class Parser:
 
     # program ::= {statement}
     def program(self):
-        self.emitter.headerLine("import out_aux")
+        self.emitter.headerLine("import aled_api")
 
         # Parse all the statements in the program.
         while not self.checkToken(TokenType.EOF):
@@ -535,9 +535,9 @@ class Parser:
                         self.currentLineText = self.indentation
                         self.currentTextLine = self.indentation
                         if tempOperation == "Row":
-                            self.currentLineText += "out_aux.modifyMatrixRow(" + tempMatrixIdent + ", " + tempMatrixRow + ")"
+                            self.currentLineText += "aled_api.modifyMatrixRow(" + tempMatrixIdent + ", " + tempMatrixRow + ")"
                         elif tempOperation == "Element":
-                            self.currentLineText += "out_aux.modifyMatrixElement(" + tempMatrixIdent + ", " + tempMatrixRow + ", " + tempMatrixColumn + ")"
+                            self.currentLineText += "aled_api.modifyMatrixElement(" + tempMatrixIdent + ", " + tempMatrixRow + ", " + tempMatrixColumn + ")"
                         self.emitter.emitLine(self.currentLineText)
                         self.currentLineText = ""
                         self.nextToken()
@@ -628,7 +628,7 @@ class Parser:
                 self.nextToken()
                 if self.curToken.text == "Neg":
                     self.currentLineText = self.indentation
-                    self.currentLineText += "out_aux.modifyMatrixColumn(" + tempMatrixIdent + ", " + tempMatrixColumn + ")"
+                    self.currentLineText += "aled_api.modifyMatrixColumn(" + tempMatrixIdent + ", " + tempMatrixColumn + ")"
                     self.emitter.emitLine(self.currentLineText)
                     self.currentLineText = ""
                     self.nextToken()
@@ -649,7 +649,7 @@ class Parser:
 
                 # Cheks if the user wants to apply .Neg to an entire matrix
                 if self.curToken.text == "Neg":
-                    self.emitter.emitLine(self.indentation + "out_aux.modifyMatrix(" + matrix + ")")
+                    self.emitter.emitLine(self.indentation + "aled_api.modifyMatrix(" + matrix + ")")
                     self.nextToken()
 
                 #Checks if the user wants to retrieve the rows and columns of a matrix
@@ -772,14 +772,14 @@ class Parser:
                         self.currentTextLine = self.indentation
                         if len(tempMatrixOperation) == 1:
                             if tempMatrixOperation == "0":
-                                self.currentTextLine += "out_aux.insertMatrixRow(" + matrix + "," + tempList + ")"
+                                self.currentTextLine += "aled_api.insertMatrixRow(" + matrix + "," + tempList + ")"
                             elif tempMatrixOperation == "1":
-                                self.currentTextLine += "out_aux.insertMatrixColumn(" + matrix + "," + tempList + ")"
+                                self.currentTextLine += "aled_api.insertMatrixColumn(" + matrix + "," + tempList + ")"
                         else:
                             if tempMatrixOperation[0] == "0":
-                                self.currentTextLine += "out_aux.insertMatrixRowAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
+                                self.currentTextLine += "aled_api.insertMatrixRowAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
                             elif tempMatrixOperation[0] == "1":
-                                self.currentTextLine += "out_aux.insertMatrixColumnAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
+                                self.currentTextLine += "aled_api.insertMatrixColumnAtPos(" + matrix + "," + tempList + "," + tempMatrixOperation[1:] + ")"
                         self.emitter.emitLine(self.currentTextLine)
                         self.currentTextLine = ""
                         self.currentLineText = ""
@@ -823,14 +823,14 @@ class Parser:
                                 self.checkRows(matrixRows, index)
                                 self.deleteRows(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "out_aux.deleteMatrixRow(" + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixRow(" + matrix + ", "+ posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTetLine = ""
                             elif operation == 1:
                                 self.checkColumns(matrixColumns, index)
                                 self.deleteColumns(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "out_aux.deleteMatrixColumn(" + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixColumn(" + matrix + ", " + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTectLine = ""
                             else:
@@ -862,9 +862,14 @@ class Parser:
             self.match(TokenType.CURLYBRACKETLEFT)
 
             # Zero or more statements in the body.
+            count = 0 # counts the amount of instructions
             while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
+                count += 1
                 self.statement(procedure)
 
+            if count == 0:
+                self.emitter.emitLine(self.indentation + "pass")
+            
             self.indentation = self.indentation[:-1]
 
             self.match(TokenType.CURLYBRACKETRIGHT)
@@ -980,7 +985,7 @@ class Parser:
             print("STATEMENT - BLINK")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
-            self.currentLineText = self.indentation + "out_aux.blinkLed("
+            self.currentLineText = self.indentation + "aled_api.blinkLed("
             if self.checkToken(TokenType.NUMBER):
                     self.currentLineText += self.curToken.text + ", "
                     self.nextToken()
@@ -1016,7 +1021,7 @@ class Parser:
             print("STATEMENT - DELAY")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
-            self.currentLineText += self.indentation + "out_aux.delay("
+            self.currentLineText += self.indentation + "aled_api.delay("
             if self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
                     self.currentLineText += self.curToken.text + ", "
                     self.nextToken()
@@ -1043,7 +1048,7 @@ class Parser:
         #PrintLed statement
         elif self.checkToken(TokenType.PrintLed):
             print("STATEMENT - PrintLed")
-            self.currentLineText = self.indentation + "out_aux.printLed("
+            self.currentLineText = self.indentation + "aled_api.printLed("
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.currentLineText += self.curToken.text + ", "
@@ -1062,7 +1067,7 @@ class Parser:
         #PrintLedX statement
         elif self.checkToken(TokenType.PrintLedX):
             print("STATEMENT - PrintLedX")
-            self.currentLineText = self.indentation + "out_aux.printLedX("
+            self.currentLineText = self.indentation + "aled_api.printLedX("
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.match(TokenType.APOST)
@@ -1418,8 +1423,8 @@ class Parser:
 
                 elif self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.IDENT): #range: listvar[1:6] or simple id listvar[0] 
         
-                    tempCurrentText1 = "out_aux.modifyList(" + identifier + ', '
-                    tempCurrentText2 = "out_aux.modifyElement(" + identifier + ', '
+                    tempCurrentText1 = "aled_api.modifyList(" + identifier + ', '
+                    tempCurrentText2 = "aled_api.modifyElement(" + identifier + ', '
                     size = self.getSymbolValue(identifier)
                     num1 = 0
 
@@ -1740,7 +1745,7 @@ class Parser:
             if self.checkToken(TokenType.IDENT) and self.curToken.text == "range":
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
-                self.currentLineText += "out_aux.createList("
+                self.currentLineText += "aled_api.createList("
                 if self.checkToken(TokenType.NUMBER):
                     self.currentLineText += self.curToken.text
                     elements = int(self.curToken.text)
