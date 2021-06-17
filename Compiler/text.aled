@@ -2,14 +2,9 @@
 ## este es solo con comentario
 Procedure Main(){
 
-    var= 10;
-    lista = [true, false, true];
-    If var < false {
-        var2 = 2;
-    };
+    matrix = [[true, false, true], [true, true, true], [false, false, true]];
+    var = 2;
+    row = matrix[2];
 };
 
-Procedure function(){
-
-};
 

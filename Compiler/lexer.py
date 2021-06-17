@@ -44,6 +44,8 @@ class Lexer:
                     self.nextChar()
                 self.curLine +=1
                 self.nextChar()
+            else:
+                self.abort("Bad comment sintax at line: " + str(self.curLine))
 
     # Helper function to skip comments (this allows the user to place them everywhere)
     def isCommentOrWhiteSpace(self):

@@ -1,11 +1,12 @@
 import time
 import threading
 
+'''
 import serial
 
 serialcom = serial.Serial('COM5', 9600)
 serialcom.timeout = 1
-
+'''
 
 #####################################
 # Led control variables and functions
@@ -20,7 +21,7 @@ ledMatrix = [[False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False]]
 
-isBlinkingMatrix = [[False, False, False, False, False, False, False, False],
+falseMatrix = [[False, False, False, False, False, False, False, False],
                     [False, False, False, False, False, False, False, False],
                     [False, False, False, False, False, False, False, False],
                     [False, False, False, False, False, False, False, False],
@@ -58,14 +59,14 @@ def updateDecimalList():
         ledDecimalList[count] = decimalNumber
         count += 1
 
-
+'''
 def sendLedInstructions():
     # Sends the ledDecimelList to the Arduino
     message = str(ledDecimalList)
     serialcom.write(message.encode())
 
     time.sleep(1.25)
-
+'''
 
 #############################
 ## LIST Built in functions ##
@@ -153,13 +154,37 @@ def modifyMatrixColumn(matrix, column):
             matrix[row][column] = True
         row += 1
 
+# Modify the boolean value of the entire matrix
+def modifyMatrix(matrix):
+    row = 0
+    while row < len(matrix):
+        column = 0
+        while column < len(matrix):
+            if matrix[row][column]:
+                matrix[row][column] = False
+            else:
+                matrix[row][column] = True
+            column += 1
+        row += 1
+
 # Inserts row at the end of the matrix
 # used for matrix.insert(row, 0)
 # inputs: matrix -> matrix to modify
 #         row -> row to insert
 def insertMatrixRow(matrix, row):
     # Inserts a row into the matrix at the end of it (as last row)
-    matrix.append(row)
+    newRow = []
+    count = 0
+    if len(matrix) != 0:
+        while count < len(matrix[0]):
+            if count < len(row):
+                newRow.append(row[count])
+            else:
+                newRow.append(False)
+            count += 1
+        matrix.append(newRow)
+    else:
+        matrix.append(row)
 
 # Inserts row at a specific position of the matrix
 # used for matrix.insert(row, 0, pos)
@@ -168,7 +193,18 @@ def insertMatrixRow(matrix, row):
 #         pos -> position of insertion
 def insertMatrixRowAtPos(matrix, row, pos):
     # Inserts a row into a matrix at the position given
-    matrix.insert(pos, row)
+    newRow = []
+    count = 0
+    if len(matrix) != 0:
+        while count < len(matrix[0]):
+            if count < len(row):
+                newRow.append(row[count])
+            else:
+                newRow.append(False)
+            count += 1
+        matrix.insert(pos, newRow)
+    else:
+        matrix.insert(pos, row)
 
 
 # Inserts column at the end of the matrix
@@ -180,7 +216,10 @@ def insertMatrixColumn(matrix, column):
     count = 0
     row = 0
     while row < len(matrix):
-        matrix[row].append(column[count])
+        if count < len(column):
+            matrix[row].append(column[count])
+        else:
+            matrix[row].append(False)
         row += 1
         count += 1
 
@@ -194,9 +233,12 @@ def insertMatrixColumnAtPos(matrix, column, pos):
     count = 0
     row = 0
     while row < len(matrix):
-        matrix[row].insert(pos, column[count])
-        count += 1
+        if count < len(column):
+            matrix[row].insert(pos, column[count])
+        else:
+            matrix[row].insert(pos, False)
         row += 1
+        count += 1
 
 # Deletes the indicated row of the given matrix
 # used for matrix.delete(rowNumber, 0)
@@ -227,7 +269,8 @@ def printLed(column, row, value):
     updateDecimalList()
     
     if value:
-        sendLedInstructions()
+        #sendLedInstructions()
+        pass
 
 # changes the value of a given row, column or matrix elements in ledMatrix
 # inputs:
@@ -267,8 +310,7 @@ def printLedX(objectType, pos, array):
                 j += 1
             i += 1
     updateDecimalList()
-    print(str(ledDecimalList))
-    sendLedInstructions()
+    #sendLedInstructions()
         
     #time.sleep(3)
 
@@ -283,29 +325,21 @@ def printLedX(objectType, pos, array):
 # delay determines the amount of time between bliks
 # timeRange indicates the units of the time range it could be in 
 # seconds ("Sec"), miliseconds ("Mil") or minute ("Min")
-def blinkLed(row, column, delay, timeRange, state):
+def blinkLed(matrix, delay, timeUnit):
     # This has to be done in a different thread
     # Change the ledMatrix with the given time
-    if state:
-        threading.Thread(target=blinkLed_aux, args=(row, column, delay, timeRange)).start
-    else:
-        isBlinkingMatrix[row][column] = False
-
-# blink led auxiliar function to keep everything out of the main thread
-def blinkLed_aux(row, column, delay, timeRange):
     factor = 1 # In case of seconds
-    if timeRange == "Min":
+    if timeUnit == "Min":
         factor *= 60
-    elif timeRange == "Mil":
+    elif timeUnit == "Mil":
         factor /= 1000
-    while isBlinkingMatrix[row][column]: # blink until the matrix element becomes false
-        if ledMatrix[row][column]:
-            printLed(row, column, False)
-            ledMatrix[row][column] = False
-        else:
-            printLed(row, column, True)
-            ledMatrix[row][column] = True
-        time.sleep(delay*factor)
+    i = 0
+    while i < 5:
+        printLedX("M", 0, matrix)
+        time.sleep(delay*factor/2)
+        printLedX("M", 0, falseMatrix)
+        time.sleep(delay*factor/2)
+        i += 1
 
 
 # this function makes a delay between every instructions, it doesn't need a thread
@@ -320,61 +354,3 @@ def delay(amount, unit):
     elif unit == "Mil":
         factor /= 1000
     time.sleep(amount*factor)
-
-
-'''
-matrix = ledMatrix
-#print(matrix)
-
-#modifyMatrixRow(matrix, 2)
-#print(matrix)
-
-#modifyMatrixElem(matrix, 4, 5)
-#print(matrix)
-
-#modifyMatrixColumn(matrix, 4)
-#print(matrix)
-
-#insertMatrixRow(matrix, [True, True, True, True, True, True, True, True])
-#print(matrix)
-
-#insertMatrixColumn(matrix, [True, True, True, True, True, True, True, True])
-#print(matrix)
-
-#insertMatrixRowAtPos(matrix, [True, True, True, True, True, True, True, True], 0)
-#print(matrix)
-
-#insertMatrixColumnAtPos(matrix, [True, True, True, True, True, True, True, True], 1)
-#print(matrix)
-
-#deleteMatrixRow(matrix, 2)
-#print(matrix)
-
-#deleteMatrixColumn(matrix, 0)
-#print(matrix)
-
-#print(ledMatrix)
-
-#printLed(1, 1, True)
-#print(ledMatrix)
-#print(ledDecimalList)
-
-printLedX("R", 1, [True, False, True, True, True, True, True, True])
-print(ledMatrix)
-print(ledDecimalList)
-
-printLedX("C", 1, [True, False, True, True, True, True, True, True])
-print(ledMatrix)
-print(ledDecimalList)
-
-printLedX("M", 1, [[False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, True, False, False, False, False, False, False]])
-print(ledMatrix)
-print(ledDecimalList)
-'''
