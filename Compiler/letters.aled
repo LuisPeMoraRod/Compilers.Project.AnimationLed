@@ -118,8 +118,7 @@ Procedure C_Letter(){
                 [false, false, false, false, false, false, false, false],
                 [false, false, false, false, false, false, false, false],
                 [false, false, false, false, false, false, false, false],
-                [false, false, false, false, false, false, false, false],
-                ];
+                [false, false, false, false, false, false, false, false]];
     
     For column In newColumn{
         PrintLedX("M", 0, mat);
