@@ -1,6 +1,0 @@
-Procedure Main ()
-{
-    matrix = [[true,false,true],[true, true, true],[false,false,true]];
-    matrix2 = matrix;
-    v%r = 0;
-};
