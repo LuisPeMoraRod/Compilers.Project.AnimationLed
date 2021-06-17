@@ -390,7 +390,7 @@ class Parser:
                 rowIndex = 0
                 if self.checkToken(TokenType.NUMBER):
                     rowIndex = int(self.curToken.text)
-                elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text) == TokenType.NUMBER:
+                elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
                     rowIndex = self.getSymbolValue(self.curToken.text)
                 
                 else:
@@ -463,9 +463,12 @@ class Parser:
                 elif self.checkToken(TokenType.COMA): #Checks for matrix[row,column]
                     tempOperation = "Element"
                     self.nextToken()
-                    if self.checkToken(TokenType.NUMBER):
+                    if self.checkToken(TokenType.NUMBER) or self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
                         tempMatrixColumn = self.curToken.text
-                        columnIndex = int(self.curToken.text)
+                        if self.checkToken(TokenType.NUMBER):
+                            columnIndex = int(self.curToken.text)
+                        else:
+                            columnIndex = int(self.getSymbolValue(self.curToken.text))
                         self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
                         self.nextToken()
                         self.match(TokenType.SQRBRACKETRIGHT)
@@ -821,14 +824,14 @@ class Parser:
                                 self.checkRows(matrixRows, index)
                                 self.deleteRows(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "aled_api.deleteMatrixRow(" + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixRow(" + matrix + "," + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTetLine = ""
                             elif operation == 1:
                                 self.checkColumns(matrixColumns, index)
                                 self.deleteColumns(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "aled_api.deleteMatrixColumn(" + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixColumn("+ matrix + "," + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTectLine = ""
                             else:

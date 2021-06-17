@@ -1,6 +1,6 @@
-Procedure Main ()
-{
-   ## global variable matrix, used to control leds
+Procedure Main(){
+
+    ## global variable matrix, used to control leds
     matrix = [[false, false, false, false, false, false, false, false],
                 [false, false, false, false, false, false, false, false],
                 [false, false, false, false, false, false, false, false],
@@ -9,7 +9,10 @@ Procedure Main ()
                 [false, false, false, false, false, false, false, false],
                 [false, false, false, false, false, false, false, false],
                 [false, false, false, false, false, false, false, false]];
-}; 
+
+    Call animation_1();
+};
+
 
 Procedure face_1(){
 
@@ -27,7 +30,9 @@ Procedure face_1(){
     matrix.insert([false, true, false, false, false, false, true, false], 0, 6);
     matrix.delete(7, 0);
     matrix.insert([false, false, true, true, true, true, false, false], 0, 7);
+
 };
+
 ## Produces two faces with num = 1: sad face looking left
 ## with num = 2: sad face looking right
 Procedure face_2(num){
@@ -61,7 +66,22 @@ Procedure face_2(num){
 
 };
 
-Procedure animation(){
+Procedure figure_1(){
+    rows = matrix.ShapeF;
+    columns = matrix.ShapeC;
+    For row In rows Step 2{
+        For column In columns Step 2{
+            matrix[row, column] = true;
+        };
+    };
+};
+
+Procedure reset_mat(){
+    listF = list(range(8, false));
+    matrix[0] = listF;
+};
+
+Procedure animation_1(){
     For i In 5 {
 
         Call face_1();
@@ -76,5 +96,5 @@ Procedure animation(){
         PrintLedX("M", 0, matrix);
         Delay(1, "Seg");
     };
-
+    Call figure_1();
 };
