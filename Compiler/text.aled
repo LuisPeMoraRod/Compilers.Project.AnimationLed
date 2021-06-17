@@ -2,16 +2,8 @@
 ## este es solo con comentario
 Procedure Main(){
 
-    var= 10;
-    lista = [true, false, true, false, true];
-
-    For var1 In 3 Step 3{
-        lista[var1].Neg;
-    };
-
-    num = 3;
     matrix = [[true, false], [true, true], [false, false]];
-    matrix.Neg;
+    var = matrix.ShapeC;
 };
 
 

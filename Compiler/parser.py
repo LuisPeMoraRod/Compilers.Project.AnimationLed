@@ -553,9 +553,10 @@ class Parser:
                 if self.checkToken(TokenType.NUMBER):
                     columnIndex = int(self.curToken.text)
                 elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
-                    columnIndex = int(self.getSymbolValue(self.curToken.text))
+                   columnIndex = int(self.getSymbolValue(self.curToken.text))
                 else:
                     self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
+                    
                 tempMatrixColumn = self.curToken.text
                 self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex)
                 self.nextToken()
@@ -596,11 +597,13 @@ class Parser:
                                         columnIndex = int(self.curToken.text)
                                     elif self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
                                         columnIndex = self.getSymbolValue(self.curToken.text)
+                                    
                                     else:
                                         self.abort("Trying to access an invalid identifier: "+ self.curToken.text)
+                                    
                                     self.checkColumns(m2Columns, columnIndex)
                                     self.nextToken()
-                                    self.match(TokenType.SQRBRACKETRIGHT)
+                                    self.match(TokenType.SQRBRACKETRIGHT);
                                 else:
                                     self.abort("Invalid token or identifier: " + self.curToken.text)
                             else:
@@ -644,16 +647,11 @@ class Parser:
             tempMatrixOperation = ""
             tempList = ""
             self.nextToken()
-            if self.checkPeek(TokenType.IDENT) or self.checkPeek(TokenType.Neg):
+            if self.checkPeek(TokenType.IDENT):
                 self.nextToken()
-
-                # Cheks if the user wants to apply .Neg to an entire matrix
-                if self.curToken.text == "Neg":
-                    self.emitter.emitLine(self.indentation + "aled_api.modifyMatrix(" + matrix + ")")
-                    self.nextToken()
-
+                
                 #Checks if the user wants to retrieve the rows and columns of a matrix
-                elif self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
+                if self.curToken.text == "shapeF" or self.curToken.text == "shapeC":
                     self.currentTextLine = self.indentation
                     if self.curToken.text == "shapeF":
                         self.currentTextLine += "len("  + matrix + ")"
@@ -823,14 +821,14 @@ class Parser:
                                 self.checkRows(matrixRows, index)
                                 self.deleteRows(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "aled_api.deleteMatrixRow(" + matrix + ", "+ posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixRow(" + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTetLine = ""
                             elif operation == 1:
                                 self.checkColumns(matrixColumns, index)
                                 self.deleteColumns(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "aled_api.deleteMatrixColumn(" + matrix + ", " + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixColumn(" + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTectLine = ""
                             else:
@@ -862,14 +860,9 @@ class Parser:
             self.match(TokenType.CURLYBRACKETLEFT)
 
             # Zero or more statements in the body.
-            count = 0 # counts the amount of instructions
             while not self.checkToken(TokenType.CURLYBRACKETRIGHT):
-                count += 1
                 self.statement(procedure)
 
-            if count == 0:
-                self.emitter.emitLine(self.indentation + "pass")
-            
             self.indentation = self.indentation[:-1]
 
             self.match(TokenType.CURLYBRACKETRIGHT)
@@ -932,7 +925,7 @@ class Parser:
 
                     #Checks if the iterable is a number 
                     elif self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
-                        self.currentTextLine += "range(0, " + self.curToken.text + ")"
+                        self.currentTextLine += self.curToken.text
                         self.nextToken()
                     else:
                         self.abort("Invalid iterable: " + self.curToken.text)
@@ -1780,6 +1773,7 @@ class Parser:
             else:
                 self.abort("Invalid token or identifier: " + self.curToken.text)
         
+        
         else: # aritmetic expression
             if curSymbol != TokenType.NUMBER and curSymbol != None:
                 self.abort("Attempting to assign a NUMBER to a " + curSymbol.name + " typed variable: " + self.tempIdent)
@@ -1787,18 +1781,50 @@ class Parser:
             ident = self.tempIdent
             self.tempProcedure = procedure
 
-            if self.getSymbolType(self.curToken.text, procedure) == TokenType.MATRIX:
-                self.tempType = TokenType.MATRIX
-                self.tempIdent = ident
-                self.tempValue = None
-                self.tempColumns = self.getMatrixColumns(self.curToken.text)
-                self.tempRows = self.getMatrixRows(self.curToken.text)
-                
-                self.currentLineText += self.curToken.text
+            if self.getSymbolType(self.curToken.text, procedure) == TokenType.MATRIX: 
+                if self.checkPeek(TokenType.DOT):
+                    
+                    matrixIdent = self.curToken.text
+                    self.nextToken()
+                    self.match(TokenType.DOT)
+                    
+                    if self.checkToken(TokenType.ShapeF):  #var = matrix.ShapeF
+                        self.match(TokenType.ShapeF)
+                        self.currentLineText += "len("
+                        self.currentLineText += matrixIdent
+                        self.currentLineText += ")"
+
+                        self.tempType = TokenType.NUMBER
+                        self.tempIdent = ident
+                        self.tempValue = self.getMatrixRows(matrixIdent)
+                    
+                    elif self.checkToken(TokenType.ShapeC): #var = matrix.ShapeC
+                        self.match(TokenType.ShapeC)
+                        self.currentLineText += "len("
+                        self.currentLineText += matrixIdent
+                        self.currentLineText += "[0])"
+
+                        self.tempType = TokenType.NUMBER
+                        self.tempIdent = ident
+                        self.tempValue = self.getMatrixColumns(matrixIdent)
+
+                    else:
+                        self.abort("Invalid statement")
+
+                else:    
+                    self.tempType = TokenType.MATRIX
+                    self.tempIdent = ident
+                    self.tempValue = None
+                    self.tempColumns = self.getMatrixColumns(self.curToken.text)
+                    self.tempRows = self.getMatrixRows(self.curToken.text)
+                    
+                    self.currentLineText += self.curToken.text
+                    self.nextToken()
+
                 self.emitter.emitLine(self.currentLineText)
                 self.currentLineText = ""
+                    
                 
-                self.nextToken()
 
             elif self.getSymbolType(self.curToken.text, procedure) == TokenType.LIST:
                 ident = self.curToken.text
@@ -1845,7 +1871,7 @@ class Parser:
                 self.currentLineText = ""
                 self.tempType = TokenType.NUMBER
                 self.tempIdent = ident
-                self.tempValue = eval(self.tempOperation)
+                #self.tempValue = eval(self.tempOperation)
 
         if not self.symbolExists(self.tempIdent, procedure):
             #print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
