@@ -1,395 +1,5 @@
 Procedure Main ()
 {
-    blank = [[false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false]];
-
-    Call M_Letter();
-    Call R_Letter();
-    Call A_Letter();
-    Call C_Letter();
-};
-
-Procedure M_Letter(){
-
-    m0 = [[false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true]];
-
-    m1 = [[false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true]];
-    
-    m2 = [[false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, true],
-               [false, false, false, false, false, true, true, true],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, false]];
-
-    m3 = [[false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, true, false],
-               [false, false, false, false, true, true, true, true],
-               [false, false, false, false, true, true, false, true],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false]];
-    
-    m4 = [[false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, true, false, false],
-               [false, false, false, true, true, true, true, true],
-               [false, false, false, true, true, false, true, true],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false]];
-
-    m5 = [[false, false, true, true, false, false, false, false],
-               [false, false, true, true, true, false, false, true],
-               [false, false, true, true, true, true, true, true],
-               [false, false, true, true, false, true, true, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false]];
-    
-    m6 = [[false, true, true, false, false, false, false, true],
-               [false, true, true, true, false, false, true, true],
-               [false, true, true, true, true, true, true, true],
-               [false, true, true, false, true, true, false, true],
-               [false, true, true, false, false, false, false, true],
-               [false, true, true, false, false, false, false, true],
-               [false, true, true, false, false, false, false, true],
-               [false, true, true, false, false, false, false, true]];
-
-    m7 = [[true, true, false, false, false, false, true, true],
-               [true, true, true, false, false, true, true, true],
-               [true, true, true, true, true, true, true, true],
-               [true, true, false, true, true, false, true, true],
-               [true, true, false, false, false, false, true, true],
-               [true, true, false, false, false, false, true, true],
-               [true, true, false, false, false, false, true, true],
-               [true, true, false, false, false, false, true, true]];
-
-    m8 = [[true, false, false, false, false, true, true, false],
-               [true, true, false, false, true, true, true, false],
-               [true, true, true, true, true, true, true, false],
-               [true, false, true, true, false, true, true, false],
-               [true, false, false, false, false, true, true, false],
-               [true, false, false, false, false, true, true, false],
-               [true, false, false, false, false, true, true, false],
-               [true, false, false, false, false, true, true, false]];
-
-    m9 = [[false, false, false, false, true, true, false, false],
-               [true, false, false, true, true, true, false, false],
-               [true, true, true, true, true, true, false, false],
-               [false, true, true, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false]];
-
-    m10 = [[false, false, false, true, true, false, false, false],
-               [false, false, true, true, true, false, false, false],
-               [true, true, true, true, true, false, false, false],
-               [true, true, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false]];
-
-    m11 = [[false, false, true, true, false, false, false, false],
-               [false, true, true, true, false, false, false, false],
-               [true, true, true, true, false, false, false, false],
-               [true, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false]];
-    
-    m12 = [[false, true, true, false, false, false, false, false],
-               [true, true, true, false, false, false, false, false],
-               [true, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false]];
-
-    m13 = [[true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false]];
-    
-    m14 = [[true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false]];
-
-    PrintLedX("M", 0, blank);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m0);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m1);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m2);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m3);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m4);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m5);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m6);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m7);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m8);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m9);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m10);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m11);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m12);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m13);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, m14);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, blank);
-    Delay(1, "Seg");
-};
-
-Procedure R_Letter(){
-    r0 = [[false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true]];
-
-    r1 = [[false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true]];
-    
-    r2 = [[false, false, false, false, false, true, true, true],
-               [false, false, false, false, false, true, true, true],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, true],
-               [false, false, false, false, false, true, true, true],
-               [false, false, false, false, false, true, true, false],
-               [false, false, false, false, false, true, true, false]];
-    
-    r3 = [[false, false, false, false, true, true, true, true],
-               [false, false, false, false, true, true, true, true],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, true, true],
-               [false, false, false, false, true, true, true, true],
-               [false, false, false, false, true, true, false, false],
-               [false, false, false, false, true, true, false, false]];
-
-    r4 = [[false, false, false, true, true, true, true, true],
-               [false, false, false, true, true, true, true, true],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, true, true, true],
-               [false, false, false, true, true, true, true, true],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false]];
-
-    r5 = [[false, false, true, true, true, true, true, true],
-               [false, false, true, true, true, true, true, true],
-               [false, false, true, true, false, false, false, true],
-               [false, false, true, true, false, false, false, true],
-               [false, false, true, true, true, true, true, true],
-               [false, false, true, true, true, true, true, true],
-               [false, false, true, true, false, false, false, true],
-               [false, false, true, true, false, false, false, false]];
-
-    r6 = [[false, true, true, true, true, true, true, true],
-               [false, true, true, true, true, true, true, true],
-               [false, true, true, false, false, false, true, true],
-               [false, true, true, false, false, false, true, true],
-               [false, true, true, true, true, true, true, false],
-               [false, true, true, true, true, true, true, false],
-               [false, true, true, false, false, false, true, true],
-               [false, true, true, false, false, false, false, true]];
-
-    r7 = [[true, true, true, true, true, true, true, false],
-               [true, true, true, true, true, true, true, false],
-               [true, true, false, false, false, true, true, false],
-               [true, true, false, false, false, true, true, false],
-               [true, true, true, true, true, true, false, false],
-               [true, true, true, true, true, true, false, false],
-               [true, true, false, false, false, true, true, false],
-               [true, true, false, false, false, false, true, true]];
-
-    r8 = [[true, true, true, true, true, true, false, false],
-               [true, true, true, true, true, true, false, false],
-               [true, false, false, false, true, true, false, false],
-               [true, false, false, false, true, true, false, false],
-               [true, true, true, true, true, false, false, false],
-               [true, true, true, true, true, false, false, false],
-               [true, false, false, false, true, true, false, false],
-               [true, false, false, false, false, true, true, false]];
-
-    r9 = [[true, true, true, true, true, false, false, false],
-               [true, true, true, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [true, true, true, true, false, false, false, false],
-               [true, true, true, true, false, false, false, false],
-               [false, false, false, true, true, false, false, false],
-               [false, false, false, false, true, true, false, false]];
-
-    r10 = [[true, true, true, true, false, false, false, false],
-               [true, true, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [true, true, true, false, false, false, false, false],
-               [true, true, true, false, false, false, false, false],
-               [false, false, true, true, false, false, false, false],
-               [false, false, false, true, true, false, false, false]];
-
-    r11 = [[true, true, true, false, false, false, false, false],
-               [true, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false],
-               [false, false, true, true, false, false, false, false]];
-    
-    r12 = [[true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false],
-               [false, true, true, false, false, false, false, false]];
-    
-    r13 = [[true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false],
-               [true, true, false, false, false, false, false, false]];
-
-    r14 = [[false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [true, false, false, false, false, false, false, false]];
-
-    PrintLedX("M", 0, blank);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r0);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r1);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r2);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r3);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r4);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r5);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r6);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r7);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r8);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r9);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r10);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r11);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r12);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r13);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, r14);
-    Delay(1, "Seg");
-    PrintLedX("M", 0, blank);
-    Delay(1, "Seg");
-};
-
-Procedure O_Letter(){
-    o0 = [[false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, false]];
-
-    o1 = = [[false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, false]];
-
-    o2 = = [[false, false, false, false, false, false, false, false],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, true, true],
-               [false, false, false, false, false, false, false, true],
-               [false, false, false, false, false, false, false, false]];
-};
-
-Procedure A_Letter(){
     mat = [[false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false],
@@ -398,6 +8,44 @@ Procedure A_Letter(){
             [false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false]];
+
+    Call M_Letter();
+    Call A_Letter();
+    Call R_Letter();
+    Call C_Letter();
+    Call O_Letter();
+
+};
+
+Procedure M_Letter(){
+    newColumn = [[true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, true],
+                [false, true, true, false, false, false, false, false],
+                [false, false, true, true, false, false, false, false],
+                [false, false, true, true, false, false, false, false],
+                [false, true, true, false, false, false, false, false],
+                [true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, true],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false]];
+
+    For column In newColumn {
+        PrintLedX("M", 0, mat);
+        Delay(0.7, "Seg");
+        mat.delete(0, 1);
+        mat.insert(column , 1);
+    };
+
+
+};
+
+Procedure A_Letter(){
 
     newColumn = [[false, false, true, true, true, true, true, true],
                 [false, true, true, true, true, true, true, true],
@@ -419,23 +67,44 @@ Procedure A_Letter(){
 
     For column In newColumn {
         PrintLedX("M", 0, mat);
-        Delay(1, "Seg");
+        Delay(0.7, "Seg");
+        mat.delete(0, 1);
+        mat.insert(column , 1);
+    };
+};
+
+Procedure R_Letter(){
+
+    newColumn = [[true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, true],
+                [true, true, false, false, true, true, false, false],
+                [true, true, false, false, true, true, false, false],
+                [true, true, false, false, true, true, false, false],
+                [true, true, true, true, true, true, true, false],
+                [true, true, true, true, false, false, true, true],
+                [false, false, false, false, false, false, false, true],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false]];
+
+
+    For column In newColumn {
+        PrintLedX("M", 0, mat);
+        Delay(0.7, "Seg");
         mat.delete(0, 1);
         mat.insert(column , 1);
     };
 };
 
 Procedure C_Letter(){
-    mat = [[false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false, false]];
 
-    newColumn =[[false, false, true, true, true, true, false, false],
+    newColumn =[[false, false, false, false, false, false, false, false],
+                [false, false, true, true, true, true, false, false],
                 [false, true, true, true, true, true, true, false],
                 [true, true, false, false, false, false, true, true],
                 [true, true, false, false, false, false, true, true],
@@ -453,7 +122,7 @@ Procedure C_Letter(){
     
     For column In newColumn{
         PrintLedX("M", 0, mat);
-        Delay(1, "Seg");
+        Delay(0.7, "Seg");
         mat.delete(0, 1);
         mat.insert(column, 1);
     };

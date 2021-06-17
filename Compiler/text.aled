@@ -2,8 +2,9 @@
 ## este es solo con comentario
 Procedure Main(){
 
-    matrix = [[true, false], [true, true], [false, false]];
-    var = matrix.ShapeC;
+    matrix = [[true, false, true], [true, true, true], [false, false, true]];
+    var = 2;
+    row = matrix[2];
 };
 
 
