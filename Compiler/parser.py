@@ -1296,6 +1296,7 @@ class Parser:
         if self.checkToken(TokenType.NUMBER):
             self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += self.curToken.text
+            self.tempValue = int(self.curToken.text)
             self.nextToken()
         
         elif self.checkToken(TokenType.IDENT) and not self.isListIdent(procedure):
@@ -1477,7 +1478,8 @@ class Parser:
         elif self.checkToken(TokenType.IDENT):
             
             if self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
-                number = self.getSymbolValue(self.curToken.text)        
+                number = self.getSymbolValue(self.curToken.text)
+                print(number)        
         else:
             self.abort("Expected NUMBER, got" + self.curToken.kind.name)
         
@@ -1814,6 +1816,37 @@ class Parser:
                     else:
                         self.abort("Invalid statement")
 
+                elif self.checkPeek(TokenType.SQRBRACKETLEFT): #row = matrix[x]
+                    matrixIdent = self.curToken.text
+                    self.currentLineText += matrixIdent
+                    self.nextToken()
+                    self.match(TokenType.SQRBRACKETLEFT)
+                    self.currentLineText += "["
+                    
+                    if self.checkToken(TokenType.NUMBER):
+                        
+                        self.currentLineText += self.curToken.text
+                        size = self.getMatrixRows(matrixIdent)
+                        self.inRange(size, procedure, False)
+
+                    elif self.checkToken(TokenType.IDENT):
+                        if self.symbolExists(self.curToken.text, procedure):
+                            if self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
+                                self.currentLineText += self.curToken.text
+                                size = self.getMatrixRows(matrixIdent)
+                                self.inRange(size, procedure, False)
+                        
+                            else:
+                                self.abort("Attempting to access a NON NUMBER variable: " + self.curToken.text)
+                        else:
+                            self.abort("Attempting to access an undeclared variable: " + self.curToken.text)
+                    else:
+                        self.abort("Invalid index")
+                    
+                    self.currentLineText += "]"
+                    self.match(TokenType.SQRBRACKETRIGHT)
+
+
                 else:    
                     self.tempType = TokenType.MATRIX
                     self.tempIdent = ident
@@ -1877,7 +1910,7 @@ class Parser:
                 #self.tempValue = eval(self.tempOperation)
 
         if not self.symbolExists(self.tempIdent, procedure):
-            #print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
+            print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue, self.tempRows, self.tempColumns)
             self.tempOperation = ""
 
