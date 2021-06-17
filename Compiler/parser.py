@@ -87,7 +87,6 @@ class Parser:
     # procedure := Procedure IDENT "(" {params} ")" "{" {statement} "}"
     def procedure(self):
         self.match(TokenType.Procedure)
-        print("STATEMENT-PROCEDURE-DEFINITION")
         self.tempProcedure = self.curToken.text
 
         #Has only one Main procedure validations
@@ -179,7 +178,6 @@ class Parser:
         #Call procedure parsing
         #statement := Call IDENT "(" ")"
         if self.checkToken(TokenType.Call):
-            print("STATEMENT-PROCEDURE-CALL")
             self.nextToken()
             self.checkToken(TokenType.IDENT)
             self.tempProcedureCall = self.curToken.text # Saves name for validations
@@ -236,7 +234,6 @@ class Parser:
             self.nextToken()
             self.match(TokenType.EQ) # identifier followed by =
             self.currentLineText += '='
-            print("STATEMENT-SIMPLE VAR ASSIGNATION")
             if self.sintaxVar(self.tempIdent):
                 self.assignation(procedure)
             else:
@@ -258,9 +255,6 @@ class Parser:
                 variables.append(self.tempIdent)
             else:
                 self.abort("Invalid identifier: "+self.tempIdent)
-            
-            
-            print("STATEMENT-COMPOUND VAR ASSIGNATION")
 
             while not self.checkToken(TokenType.EQ):
                 self.match(TokenType.COMA)
@@ -288,14 +282,12 @@ class Parser:
         #List operations or modifiers
         elif self.isListIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
             self.currentLineText += self.indentation
-            print("STATEMENT-LIST MODIFIER")
             self.nextToken()
             is_range = False
             delimiters = self.squareBrackets(self.tempIdent, procedure)
             if isinstance(delimiters, tuple):
                 is_range = True
-                print(is_range)
-            
+
             if self.checkToken(TokenType.EQ): #Validation for List modifiers e.g: listvar[3] = true; listvar[1:3] = [true, false];
                                     #statement := IDENT squareBrackets "=" ("[" boolean listValues "]" | boolean)
                 self.match(TokenType.EQ)
@@ -320,7 +312,6 @@ class Parser:
 
             elif self.checkToken(TokenType.DOT): #Validation for list operations: listvar[0].Neg; listvar[0].T; listvar[0].F;
                                                 #statement := IDENT squareBrackets "." ("Neg" | "T" | "F")
-                print("DOT")
                 self.match(TokenType.DOT)
                 if self.checkToken(TokenType.Neg) or self.checkToken(TokenType.F) or self.checkToken(TokenType.T):
                     if self.checkToken(TokenType.Neg):
@@ -342,7 +333,6 @@ class Parser:
             self.match(TokenType.DOT)
             if self.curToken.text == "insert": #listvar.Insert(5,true);
                 self.currentLineText += "insert("
-                print("STATEMENT - INSERT")
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 self.currentLineText += self.curToken.text
@@ -359,12 +349,10 @@ class Parser:
 
             elif self.curToken.text == "delete":
                 self.currentLineText += "delete("
-                print("STATEMENT - DELETE")
                 self.nextToken()
                 self.match(TokenType.ROUNDBRACKETLEFT)
                 self.currentLineText += self.curToken.text + ')'
                 size = self.getSymbolValue(self.tempIdent)
-                print("size" + str(size))
                 self.inRange(size, procedure, True)
                 self.match(TokenType.ROUNDBRACKETRIGHT)
                 self.decreaseListIndex(self.tempIdent)
@@ -375,8 +363,6 @@ class Parser:
         
         #Matrix operations or modifiers
         elif self.isMatrixIdent(procedure) and self.checkPeek(TokenType.SQRBRACKETLEFT):
-            print("STATEMENT-MATRIX MODIFIER")
-
             tempMatrixIdent = self.curToken.text
             tempMatrixRow = ""
             tempOperation = ""
@@ -664,12 +650,10 @@ class Parser:
                         self.currentTextLine += "len("  + matrix + "[0])"
                     self.emitter.emitLine(self.currentTextLine)
                     self.currentTextLine = ""
-                    print("GET MATRIX SHAPE: " + self.curToken.text)
                     self.nextToken()
                 
                 #Checks if the user wants to add an element in the matrix
                 elif self.curToken.text == "insert":
-                    print("INSERT ELEMENT IN MATRIX: "+ self.curToken.text)
                     self.nextToken()
                     self.match(TokenType.ROUNDBRACKETLEFT)
                     elements = 0
@@ -692,7 +676,6 @@ class Parser:
                         else:
                             tempList += "[" + self.curToken.text
                         self.checkLstElmnt() #first element
-                        print("Adding to the list: " + self.currentLineText)
                         elements = 1
         
                         while not self.checkToken(TokenType.SQRBRACKETRIGHT):
@@ -705,7 +688,6 @@ class Parser:
                             else:
                                 tempList += self.curToken.text
                             self.checkLstElmnt()
-                            print("Adding to the list: " + self.currentLineText)
                             elements = elements + 1
                             
                         self.match(TokenType.SQRBRACKETRIGHT)
@@ -744,8 +726,6 @@ class Parser:
 
                                     if operation == 0:
                                         self.checkRows(matrixRows, index)
-                                        print("Columns: ", matrixColumns)
-                                        print("Elelemnts: ", elements)
                                         if matrixColumns == elements:
                                             self.addRows(matrix, procedure)
                                             
@@ -792,7 +772,6 @@ class Parser:
                 
                 #Delete operation
                 elif self.curToken.text == "delete":
-                    print("DELETE ELEMENT FROM MATRIX: "+ self.curToken.text)
                     self.nextToken()
                     self.match(TokenType.ROUNDBRACKETLEFT)
                     posNumber = ""
@@ -852,7 +831,6 @@ class Parser:
         #Statement if
         #statement := If comparison "{" {statement} "}" ";"
         elif self.checkToken(TokenType.If):
-            print("STATEMENT-IF")
             self.currentLineText = self.indentation + "if "
             self.nextToken()
             self.tempProcedure = procedure
@@ -875,7 +853,6 @@ class Parser:
         #Statement for
         #Statement := For variable "In" iterable "Step" num "{" {statement} "}" ";"
         elif self.checkToken(TokenType.For):
-            print("STATEMENT-FOR")
             self.nextToken()
             self.currentTextLine = self.indentation + "for "
             hasStep = False
@@ -980,7 +957,6 @@ class Parser:
 
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
         elif self.checkToken(TokenType.Blink):
-            print("STATEMENT - BLINK")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.currentLineText = self.indentation + "aled_api.blinkLed("
@@ -1016,7 +992,6 @@ class Parser:
         
         #Delay statement: Delay(5, "Mil")
         elif self.checkToken(TokenType.Delay):
-            print("STATEMENT - DELAY")
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.currentLineText += self.indentation + "aled_api.delay("
@@ -1045,7 +1020,6 @@ class Parser:
 
         #PrintLed statement
         elif self.checkToken(TokenType.PrintLed):
-            print("STATEMENT - PrintLed")
             self.currentLineText = self.indentation + "aled_api.printLed("
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
@@ -1064,7 +1038,6 @@ class Parser:
 
         #PrintLedX statement
         elif self.checkToken(TokenType.PrintLedX):
-            print("STATEMENT - PrintLedX")
             self.currentLineText = self.indentation + "aled_api.printLedX("
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
@@ -1117,7 +1090,6 @@ class Parser:
 
 
     def params(self, parameterList):
-        print("PARAMETERS")
         while True:
             if self.checkToken(TokenType.IDENT):
                 parameterList.append(self.curToken.text)
@@ -1132,7 +1104,6 @@ class Parser:
             self.nextToken()
     
     def paramsCall(self, parameterList):
-        print("PARAMETERS - CALL")
         while True:
             if self.checkToken(TokenType.IDENT) or self.checkToken(TokenType.NUMBER)\
                 or self.checkToken(TokenType.true) or self.checkToken(TokenType.false):
@@ -1149,7 +1120,6 @@ class Parser:
 
     # semicolon ::= ';'+
     def semicolon(self):
-        print("SEMICOLON")
         # Require at least one newline.
         #self.match(TokenType.SEMICOLON)
         if not self.checkToken(TokenType.SEMICOLON):
@@ -1166,7 +1136,6 @@ class Parser:
     
     # comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
     def comparison(self, procedure):
-        print("COMPARISON")
         if self.isBoolIdent(procedure):
             if self.checkToken(TokenType.EQEQ):
                 self.currentLineText += '=='
@@ -1224,7 +1193,6 @@ class Parser:
 
     # expression ::= term {( "-" | "+" ) term}
     def expression(self, procedure):
-        print("EXPRESSION")
 
         self.term(procedure)
         # Can have 0 or more +/- and expressions.
@@ -1239,7 +1207,6 @@ class Parser:
 
      # term ::= unary {( "/" | "//" | "*" ) unary}
     def term(self, procedure):
-        print("TERM")
 
         self.unary(procedure)
         # Can have 0 or more * / and expressions.
@@ -1257,7 +1224,6 @@ class Parser:
 
     # unary ::= ["+" | "-"] primary
     def unary(self, procedure):
-        print("UNARY")
 
         # Optional unary +/-
         if self.checkToken(TokenType.PLUS) or self.checkToken(TokenType.MINUS):
@@ -1275,7 +1241,6 @@ class Parser:
         while self.checkToken(TokenType.MODULE):
             self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += '%'
-            print("MODULE")
             self.nextToken()
             self.exp(procedure)
 
@@ -1285,14 +1250,12 @@ class Parser:
         while self.checkToken(TokenType.ASTERISKD):
             self.tempOperation = self.tempOperation + self.curToken.text
             self.currentLineText += '**'
-            print("EXPONENT")
             self.nextToken()
             self.primary(procedure)
          
 
     # primary ::= number | ident{squareBrackets} | "(" expression ")"
     def primary(self, procedure):
-        print("PRIMARY ( \'" + self.curToken.text + "\' )")
 
         if self.checkToken(TokenType.NUMBER):
             self.tempOperation = self.tempOperation + self.curToken.text
@@ -1319,13 +1282,11 @@ class Parser:
             self.currentLineText += '('
             self.nextToken()
             self.expression(procedure)
-            print("PRIMARY ( \'" + self.curToken.text + "\' )")
             self.tempOperation = self.tempOperation + self.curToken.text
             self.match(TokenType.ROUNDBRACKETRIGHT)
             self.currentLineText +=')'
         
         elif self.checkToken(TokenType.Len): #Len statement
-            print("STATEMENT - Len")
             self.currentLineText += 'len('
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
@@ -1343,7 +1304,6 @@ class Parser:
             self.abort("Unexpected token at " + self.curToken.text)
 
     def isBoolIdent(self, procedure):
-        print("Comparsion identifier")
         if self.checkToken(TokenType.IDENT): 
             self.tempIdent = self.curToken.text
             self.currentLineText += self.tempIdent
@@ -1366,7 +1326,6 @@ class Parser:
         size = self.getSymbolValue(identifier)
         if self.checkToken(TokenType.SQRBRACKETLEFT):
             self.currentLineText += "["
-            print("SQUARE BRACKETS")
             if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST: 
                 self.nextToken()
                 if self.checkToken(TokenType.DOUBLEDOT):#column: listvar[:,5]
@@ -1408,7 +1367,6 @@ class Parser:
     def squareBrackets(self, identifier, procedure): 
         size = self.getSymbolValue(identifier)
         if self.checkToken(TokenType.SQRBRACKETLEFT):
-            print("SQUARE BRACKETS")
             if self.getSymbolType(identifier, self.tempProcedure) == TokenType.LIST:
                 self.nextToken()
                 if self.checkToken(TokenType.DOUBLEDOT):#column: listvar[:,5]
@@ -1480,7 +1438,6 @@ class Parser:
             
             if self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER:
                 number = self.getSymbolValue(self.curToken.text)
-                print(number)        
         else:
             self.abort("Expected NUMBER, got" + self.curToken.kind.name)
         
@@ -1911,7 +1868,6 @@ class Parser:
                 #self.tempValue = eval(self.tempOperation)
 
         if not self.symbolExists(self.tempIdent, procedure):
-            print("Adding "+ self.tempIdent+ " ("+ self.tempType.name + ")")
             self.addSymbol(self.tempIdent, self.tempType, procedure, self.tempValue, self.tempRows, self.tempColumns)
             self.tempOperation = ""
 
