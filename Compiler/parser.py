@@ -891,7 +891,7 @@ class Parser:
                     self.match(TokenType.In)
 
                     #Checks if the iterable is a list
-                    if self.isListIdent(procedure):
+                    if self.isListIdent(procedure) or self.isMatrixIdent(procedure):
                         self.currentTextLine += self.curToken.text
                         listLength = self.getSymbolValue(self.tempIdent)
                         self.nextToken()
