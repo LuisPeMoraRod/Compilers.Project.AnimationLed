@@ -10,6 +10,7 @@ Procedure Main ()
                [false, false, false, false, false, false, false, false]];
 
     Call M_Letter();
+    Call R_Letter();
 };
 
 Procedure M_Letter(){
@@ -356,4 +357,4 @@ Procedure R_Letter(){
     PrintLedX("M", 0, blank);
     Delay(1, "Seg");
 
-}
+};
