@@ -127,3 +127,30 @@ Procedure C_Letter(){
         mat.insert(column, 1);
     };
 };
+
+Procedure O_Letter(){
+
+    newColumn =[[false, false, true, true, true, true, false, false],
+                [false, true, true, true, true, true, true, false],
+                [true, true, false, false, false, false, true, true],
+                [true, true, false, false, false, false, true, true],
+                [true, true, false, false, false, false, true, true],
+                [true, true, false, false, false, false, true, true],
+                [false, true, true, true, true, true, true, false],
+                [false, false, true, true, true, true, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false]];
+    
+    For column In newColumn{
+        PrintLedX("M", 0, mat);
+        Delay(0.7, "Seg");
+        mat.delete(0, 1);
+        mat.insert(column, 1);
+    };
+};
