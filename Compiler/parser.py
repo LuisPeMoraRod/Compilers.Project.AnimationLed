@@ -884,7 +884,7 @@ class Parser:
                     self.match(TokenType.In)
 
                     #Checks if the iterable is a list
-                    if self.isListIdent(procedure):
+                    if self.isListIdent(procedure) or self.isMatrixIdent(procedure):
                         self.currentTextLine += self.curToken.text
                         listLength = self.getSymbolValue(self.tempIdent)
                         self.nextToken()
@@ -1082,7 +1082,6 @@ class Parser:
                 self.match(TokenType.COMA)
 
                 if objType == "M":
-                    self.currentLineText += "\"M\", "
                     if self.isMatrixIdent(procedure):
                         self.currentLineText += self.curToken.text + ")"
                         self.nextToken()
