@@ -825,14 +825,14 @@ class Parser:
                                 self.checkRows(matrixRows, index)
                                 self.deleteRows(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "aled_api.deleteMatrixRow(" + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixRow(" + matrix + ","  + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTetLine = ""
                             elif operation == 1:
                                 self.checkColumns(matrixColumns, index)
                                 self.deleteColumns(matrix, procedure)
                                 self.currentTextLine = self.indentation
-                                self.currentTextLine += "aled_api.deleteMatrixColumn(" + posNumber + ")"
+                                self.currentTextLine += "aled_api.deleteMatrixColumn(" + matrix + "," + posNumber + ")"
                                 self.emitter.emitLine(self.currentTextLine)
                                 self.currentTectLine = ""
                             else:
