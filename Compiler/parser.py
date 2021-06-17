@@ -954,12 +954,21 @@ class Parser:
 
             self.indentation = self.indentation[:-1]
 
-
+        # Blink statement: Blink(matrix, time, timeUnit)
         #Blink statement: Blink( x[1],5, “Seg”, True); Blink( x[1:3],5, “Seg”, True); Blink( x,5, “Seg”, True);
         elif self.checkToken(TokenType.Blink):
             self.nextToken()
             self.match(TokenType.ROUNDBRACKETLEFT)
             self.currentLineText = self.indentation + "aled_api.blinkLed("
+            if self.getSymbolType(self.curToken.text, procedure) == TokenType.MATRIX:
+                self.currentLineText += self.curToken.text + ", "
+                self.nextToken()
+            self.match(TokenType.COMA)
+            if self.checkToken(TokenType.NUMBER):
+                    self.currentLineText += self.curToken.text + ", "
+                    self.nextToken()
+            self.match(TokenType.COMA)
+            '''
             if self.checkToken(TokenType.NUMBER):
                     self.currentLineText += self.curToken.text + ", "
                     self.nextToken()
@@ -968,28 +977,24 @@ class Parser:
                     self.currentLineText += self.curToken.text + ", "
                     self.nextToken()
             self.match(TokenType.COMA)
-            if self.checkToken(TokenType.NUMBER):
-                    self.currentLineText += self.curToken.text + ", "
-                    self.nextToken()
-            self.match(TokenType.COMA)
+            '''
             self.match(TokenType.APOST)
             if self.checkToken(TokenType.Mil) or self.checkToken(TokenType.Seg) or self.checkToken(TokenType.Min):
                 if self.checkToken(TokenType.Mil):
-                    self.currentLineText += "\"Mil\"" + ", "
+                    self.currentLineText += "\"Mil\""
                 elif self.checkToken(TokenType.Seg):
-                    self.currentLineText += "\"Seg\"" + ", "
+                    self.currentLineText += "\"Seg\""
                 elif self.checkToken(TokenType.Min):
-                    self.currentLineText += "\"Min\"" + ", "
+                    self.currentLineText += "\"Min\""
                 self.nextToken()
                 self.match(TokenType.APOST)
-                self.match(TokenType.COMA)
-                self.checkLstElmnt()
+                #self.match(TokenType.COMA)
+                #self.checkLstElmnt()
                 self.match(TokenType.ROUNDBRACKETRIGHT)
                 self.emitter.emitLine(self.currentLineText + ")")
                 self.currentLineText = ""
             else:
                 self.abort("Invalid time unit: "+self.curToken.text)
-        
         #Delay statement: Delay(5, "Mil")
         elif self.checkToken(TokenType.Delay):
             self.nextToken()

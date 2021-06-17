@@ -1,12 +1,12 @@
 import time
 import threading
 
-
+'''
 import serial
 
 serialcom = serial.Serial('COM5', 9600)
 serialcom.timeout = 1
-
+'''
 
 #####################################
 # Led control variables and functions
@@ -21,7 +21,7 @@ ledMatrix = [[False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False],
             [False, False, False, False, False, False, False, False]]
 
-isBlinkingMatrix = [[False, False, False, False, False, False, False, False],
+falseMatrix = [[False, False, False, False, False, False, False, False],
                     [False, False, False, False, False, False, False, False],
                     [False, False, False, False, False, False, False, False],
                     [False, False, False, False, False, False, False, False],
@@ -59,14 +59,14 @@ def updateDecimalList():
         ledDecimalList[count] = decimalNumber
         count += 1
 
-
+'''
 def sendLedInstructions():
     # Sends the ledDecimelList to the Arduino
     message = str(ledDecimalList)
     serialcom.write(message.encode())
 
     time.sleep(1.25)
-
+'''
 
 #############################
 ## LIST Built in functions ##
@@ -269,7 +269,8 @@ def printLed(column, row, value):
     updateDecimalList()
     
     if value:
-        sendLedInstructions()
+        #sendLedInstructions()
+        pass
 
 # changes the value of a given row, column or matrix elements in ledMatrix
 # inputs:
@@ -309,7 +310,7 @@ def printLedX(objectType, pos, array):
                 j += 1
             i += 1
     updateDecimalList()
-    sendLedInstructions()
+    #sendLedInstructions()
         
     #time.sleep(3)
 
@@ -324,29 +325,21 @@ def printLedX(objectType, pos, array):
 # delay determines the amount of time between bliks
 # timeRange indicates the units of the time range it could be in 
 # seconds ("Sec"), miliseconds ("Mil") or minute ("Min")
-def blinkLed(row, column, delay, timeRange, state):
+def blinkLed(matrix, delay, timeUnit):
     # This has to be done in a different thread
     # Change the ledMatrix with the given time
-    if state:
-        threading.Thread(target=blinkLed_aux, args=(row, column, delay, timeRange)).start
-    else:
-        isBlinkingMatrix[row][column] = False
-
-# blink led auxiliar function to keep everything out of the main thread
-def blinkLed_aux(row, column, delay, timeRange):
     factor = 1 # In case of seconds
-    if timeRange == "Min":
+    if timeUnit == "Min":
         factor *= 60
-    elif timeRange == "Mil":
+    elif timeUnit == "Mil":
         factor /= 1000
-    while isBlinkingMatrix[row][column]: # blink until the matrix element becomes false
-        if ledMatrix[row][column]:
-            printLed(row, column, False)
-            ledMatrix[row][column] = False
-        else:
-            printLed(row, column, True)
-            ledMatrix[row][column] = True
-        time.sleep(delay*factor)
+    i = 0
+    while i < 5:
+        printLedX("M", 0, matrix)
+        time.sleep(delay*factor/2)
+        printLedX("M", 0, falseMatrix)
+        time.sleep(delay*factor/2)
+        i += 1
 
 
 # this function makes a delay between every instructions, it doesn't need a thread
