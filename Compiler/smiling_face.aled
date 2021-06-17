@@ -50,35 +50,67 @@ Procedure face_2(num){
         matrix.delete(6, 1);
         matrix.insert(listEyes, 1, 6);
         matrix.delete(7, 1);
-        matrix.insert(listEyes, 1, 7);
+        matrix.insert(listEyes, 1, 6);
     };
 
+    listF = list(range(8, false));
     matrix.delete(3, 1);
     matrix.insert(listEyes, 1, 3);
     matrix.delete(4, 1);
     matrix.insert(listEyes, 1, 4);
-    listEyes[1:6] = [false, true, true, true, true];
+    listEyes[1:7] = [false, true, true, true, true, false];
     matrix.delete(6, 0);
     matrix.insert(listEyes, 0, 6);
-    listEyes[2:6].Neg;
-    listEyes[0] = false;
-    listEyes[7] = false;
+    listEyes[2:6] = [false, false, false, false];
+    listEyes[1] = true;
+    listEyes[6] = true;
+    matrix.delete(7, 0);
+    matrix.insert(listEyes, 0, 7);
 
 };
 
 Procedure figure_1(){
     rows = matrix.ShapeF;
     columns = matrix.ShapeC;
-    For row In rows Step 2{
-        For column In columns Step 2{
-            matrix[row, column] = true;
+    For row In rows{
+        For column In columns{
+            If column > row{
+                matrix[row, column] = true;
+            };
         };
     };
 };
 
-Procedure reset_mat(){
-    listF = list(range(8, false));
-    matrix[0] = listF;
+Procedure figure_2(){
+    rows = matrix.ShapeF;
+    columns = matrix.ShapeC;
+    For row In rows{
+        For column In columns{
+            If column > row{
+                matrix[row, column] = false;
+            };
+        };
+    };
+};
+
+Procedure reset_f(){
+    rows = matrix.ShapeF;
+    columns = matrix.ShapeC;
+    For row In rows{
+        For column In columns{
+            matrix[row, column] = false;
+        };
+    };
+};
+
+Procedure reset_t(){
+    rows = matrix.ShapeF;
+    columns = matrix.ShapeC;
+    For row In rows{
+        For column In columns{
+            matrix[row, column] = true;
+        };
+    };
 };
 
 Procedure animation_1(){
@@ -88,13 +120,32 @@ Procedure animation_1(){
         PrintLedX("M", 0, matrix);
         Delay(1, "Seg");
 
+        Call reset_f();
         Call face_2(1);
         PrintLedX("M", 0, matrix);
         Delay(1, "Seg");
 
+        Call reset_f();
         Call face_2(2);
         PrintLedX("M", 0, matrix);
         Delay(1, "Seg");
     };
-    Call figure_1();
+
+    For i In 5{
+        Call reset_f();
+        PrintLedX("M", 0, matrix);
+        Delay(1, "Seg");
+
+        Call figure_1();
+        PrintLedX("M", 0, matrix);
+        Delay(1, "Seg");
+
+        Call reset_t();
+        PrintLedX("M", 0, matrix);
+        Delay(1, "Seg");
+
+        Call figure_2();
+        PrintLedX("M", 0, matrix);
+        Delay(1, "Seg");
+    };
 };

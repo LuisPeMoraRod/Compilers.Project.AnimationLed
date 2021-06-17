@@ -1,6 +1,7 @@
 import time
 import threading
 
+
 import serial
 
 serialcom = serial.Serial('COM5', 9600)
@@ -308,7 +309,6 @@ def printLedX(objectType, pos, array):
                 j += 1
             i += 1
     updateDecimalList()
-    print(str(ledDecimalList))
     sendLedInstructions()
         
     #time.sleep(3)
@@ -361,65 +361,3 @@ def delay(amount, unit):
     elif unit == "Mil":
         factor /= 1000
     time.sleep(amount*factor)
-
-
-print(ledMatrix)
-modifyMatrix(ledMatrix)
-print(ledMatrix)
-
-'''
-matrix = ledMatrix
-#print(matrix)
-
-#modifyMatrixRow(matrix, 2)
-#print(matrix)
-
-#modifyMatrixElem(matrix, 4, 5)
-#print(matrix)
-
-#modifyMatrixColumn(matrix, 4)
-#print(matrix)
-
-#insertMatrixRow(matrix, [True, True, True, True, True, True, True, True])
-#print(matrix)
-
-#insertMatrixColumn(matrix, [True, True, True, True, True, True, True, True])
-#print(matrix)
-
-#insertMatrixRowAtPos(matrix, [True, True, True, True, True, True, True, True], 0)
-#print(matrix)
-
-#insertMatrixColumnAtPos(matrix, [True, True, True, True, True, True, True, True], 1)
-#print(matrix)
-
-#deleteMatrixRow(matrix, 2)
-#print(matrix)
-
-#deleteMatrixColumn(matrix, 0)
-#print(matrix)
-
-#print(ledMatrix)
-
-#printLed(1, 1, True)
-#print(ledMatrix)
-#print(ledDecimalList)
-
-printLedX("R", 1, [True, False, True, True, True, True, True, True])
-print(ledMatrix)
-print(ledDecimalList)
-
-printLedX("C", 1, [True, False, True, True, True, True, True, True])
-print(ledMatrix)
-print(ledDecimalList)
-
-printLedX("M", 1, [[False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, False, False, False, False, False, False, False],
-            [False, True, False, False, False, False, False, False]])
-print(ledMatrix)
-print(ledDecimalList)
-'''

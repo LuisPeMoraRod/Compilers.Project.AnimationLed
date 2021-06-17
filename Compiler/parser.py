@@ -478,9 +478,11 @@ class Parser:
 
                             #A specific value is given
                             if self.checkToken(TokenType.true) or self.checkToken(TokenType.false) or self.getSymbolType(self.curToken.text, procedure) == TokenType.BOOLEAN:
+                                self.emitter.emitLine(self.indentation  + tempMatrixIdent + "[" + tempMatrixRow + "][" + tempMatrixColumn + "]=" + self.curToken.text.capitalize())
                                 self.nextToken()
                             #A list element is given    
                             elif self.isListIdent(procedure):
+                                tempListIdent = self.curToken.text
                                 size = self.getSymbolValue(self.curToken.text)
                                 self.nextToken()
                                 self.match(TokenType.SQRBRACKETLEFT)
@@ -490,7 +492,7 @@ class Parser:
                                     index = self.getSymbolValue(self.curToken.text)  
                                 else:
                                     self.abort("Trying to access an invalid identifier: "+ self.curToken.text) 
-                                
+                                self.emitter.emitLine(self.indentation  + tempMatrixIdent + "[" + tempMatrixRow + "][" + tempMatrixColumn + "]=" + tempListIdent + "[" + self.curToken.text +"]")
                                 self.checkRows(size, index)
                                 self.nextToken()
                                 self.match(TokenType.SQRBRACKETRIGHT)
@@ -928,7 +930,7 @@ class Parser:
 
                     #Checks if the iterable is a number 
                     elif self.checkToken(TokenType.NUMBER) or (self.symbolExists(self.curToken.text, procedure) and self.getSymbolType(self.curToken.text, procedure) == TokenType.NUMBER):
-                        self.currentTextLine += self.curToken.text
+                        self.currentTextLine += "range(0, " + self.curToken.text + ")"
                         self.nextToken()
                     else:
                         self.abort("Invalid iterable: " + self.curToken.text)
