@@ -388,6 +388,7 @@ Procedure O_Letter(){
                [false, false, false, false, false, false, false, true],
                [false, false, false, false, false, false, false, false]];
 };
+};
 
 Procedure A_Letter(){
     mat = [[false, false, false, false, false, false, false, false],

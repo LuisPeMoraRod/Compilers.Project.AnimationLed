@@ -442,7 +442,7 @@ class Parser:
                                     
                                     self.checkRows(m2Rows, rowIndex)
                                     self.nextToken()
-                                    self.match(TokenType.SQRBRACKETRIGHT);
+                                    self.match(TokenType.SQRBRACKETRIGHT)
                                 else:
                                     self.abort("Invalid token or identifier: " + self.curToken.text)
                             else:
@@ -466,6 +466,10 @@ class Parser:
                     if self.checkToken(TokenType.NUMBER):
                         tempMatrixColumn = self.curToken.text
                         columnIndex = int(self.curToken.text)
+                        print("Debugging")
+                        print(columnIndex)
+                        print(self.getMatrixColumns(self.tempIdent))
+                        
                         self.checkColumns(self.getMatrixColumns(self.tempIdent), columnIndex) 
                         self.nextToken()
                         self.match(TokenType.SQRBRACKETRIGHT)
@@ -1966,7 +1970,7 @@ class Parser:
     
     #Checks if the index that is being tried to access is in a valid column range
     def checkColumns(self, matrixColumns, columnAccesed):
-        if matrixColumns < columnAccesed:
+        if matrixColumns <= columnAccesed:
             self.abort("Trying to access a column out of range")
     
     #Increases the amount of rows of a specific matrix
